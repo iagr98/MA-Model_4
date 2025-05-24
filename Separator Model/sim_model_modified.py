@@ -211,6 +211,7 @@ class input_simulation:
             self.u_dis.append(u_dis)
             self.u_c.append(u_c)
             self.u_d.append(u_d_plot)
+            
 
         return u_dis, u_d, u_c
     
