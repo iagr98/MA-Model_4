@@ -28,6 +28,7 @@ if __name__ == "__main__":
     N_D = 15
     N_x = 101
     a_tol = 1e-6
+    
 
     Sim = run_sim(filename, N_D=N_D, N_x=N_x, a_tol=a_tol)
 
