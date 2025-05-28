@@ -32,9 +32,10 @@ class input_simulation:
         self.H_DPZ = 0
         self.L_DPZ = 0
         self.V_dis_total = 0
-        self.dVdis_dt = []
-        self.dVd_dt = []
-        self.dVc_dt = []
+        self.phi_32_term_1 = []
+        self.phi_32_term_2 = []
+        self.phi_32_term_3 = []
+        self.phi_32_term_4 = []
         self.vol_balance = 0
         self.eps = []
 
@@ -190,7 +191,7 @@ class input_simulation:
 
         # if ((t % (5*dt) < 0.5 and int(t//(5*dt)) != self.last_triggered and coupling) or t==0):
         #     self.last_triggered = int(t//(5*dt))
-        if ((t==0) or (t > T/2 and self.last_triggered < 1)):
+        if ((t==0) or (t > T/2 and self.last_triggered < 50)):
             self.last_triggered += 1
             for i in range(len(V_dis)):
                 u_d[i] = (u_0*A_A*(eps_0-1)+u_dis[i]*A_dis[i]*(1-eps_p))/(A_d[i]*(eps_d[i]-1))
@@ -334,10 +335,11 @@ class input_simulation:
             dphi32_dt[0] = 0
             for j in range(N_d):
                 dN_j_dt[j,0] = 0
-
-            self.dVdis_dt.append(dVdis_dt)
-            self.dVd_dt.append(dVd_dt)
-            self.dVc_dt.append(dVc_dt)
+            
+            self.phi_32_term_1.append((u_dis / dl) * (np.roll(phi_32,1) - phi_32))
+            self.phi_32_term_2.append((phi_32 / dl) * (np.roll(u_dis, 1) - u_dis))
+            self.phi_32_term_3.append((phi_32 / (6 * tau_dd)))
+            self.phi_32_term_4.append(self.source_term_32(V_dis, V_d, phi_32, N_j))
 
             return np.concatenate([dVdis_dt, dVd_dt, dVc_dt, dphi32_dt, dN_j_dt.flatten()])
         
@@ -517,7 +519,7 @@ class input_simulation:
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
 
-        if (plots == ['heights'] or plots == ['hold_up'] or plots == ['velo'] or plots == ['phi_32'] or plots == ['tau']):
+        if (plots == ['heights'] or plots == ['hold_up'] or plots == ['velo'] or plots == ['phi_32'] or plots == ['tau'] or plots == ['phi_32_analysis']):
             fig = plt.figure()
             ax = fig.add_subplot(111)
             #fig, ax = plt.subplots()
@@ -541,6 +543,10 @@ class input_simulation:
         N_j = self.N_j
         d_j = self.d_j
         eps = np.zeros((len(V_dis[:,0]), len(V_dis[0,:])))
+        phi_32_term_1 = self.phi_32_term_1
+        phi_32_term_2 = self.phi_32_term_2
+        phi_32_term_3 = self.phi_32_term_3
+        phi_32_term_4 = self.phi_32_term_4
 
         N = np.array(N_j)
         for i in range(len(V_dis[:,0])):
@@ -702,6 +708,18 @@ class input_simulation:
                 ax.set_zlabel('Number of droplets')
                 ax.view_init(elev=30, azim=45)
                 ax.set_title('Time = {:.2f}'.format(t[frame]) + 's, '+' Frame = {:.2f}'.format(frame))
+            
+            if key == 'phi_32_analysis':
+                ax.plot(x, phi_32_term_1[frame] * 1000, label='Term 1', color='b')
+                ax.plot(x, phi_32_term_2[frame] * 1000, label='Term 2', color='g')
+                ax.plot(x, phi_32_term_3[frame] * 1000, label='Term 3', color='r')
+                ax.plot(x, phi_32_term_4[frame] * 1000, label='Term 4', color='c')
+
+                ax.set_xlabel('x in mm')
+                ax.set_ylabel('d()/dt in m/s')
+                ax.set_xlim(0, x[-1])
+                ax.set_ylim(bottom=-0.05, top=0.05)
+                ax.legend()
 
         def update(frame):
 

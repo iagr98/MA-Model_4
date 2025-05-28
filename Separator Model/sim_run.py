@@ -47,5 +47,5 @@ if __name__ == "__main__":
     # eSim.plot_anim(plots)
 
     # zu Phasenhöhe)
-    plots = ['heights','velo', 'hold_up']
+    plots = ['heights','phi_32', 'phi_32_analysis']
     Sim.plot_anim(plots)
