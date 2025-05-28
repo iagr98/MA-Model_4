@@ -24,8 +24,8 @@ def getArea(h, r):
     return r**2 * np.arccos(1 - h / r) - (r - h) * np.sqrt(2 * r * h - h**2)
 
 # Funktion berechnet dyn. Viskosität in der dicht gepackten Schicht nach Modell von Yaron und Gal-Or
-def yaron(eta_c, eta_d, eps):
-    al = eta_c / (eta_d + 23e-3)
+def yaron(eta_c, eta_d, eps, eta_v=23e-3):
+    al = eta_c / (eta_d + eta_v)
     ga = eps ** (1 / 3)
     omega = ((4 * ga ** 7 + 10 - (84 / 11) * ga ** 2 + 4 * al * (1 - ga ** 7)) /
              (10 * (1 - ga ** 10) - 25 * ga ** 3 * (1 - ga ** 4) + 10 * al * (1 - ga ** 3) * (1 - ga ** 7)))
@@ -39,9 +39,8 @@ def calculate_volume_balance(Sim):
       """ Berechnet die Volumenbilanz für die Simulation
        Ausgabe in prozent """
       dV_ges = Sim.Sub.dV_ges
-      u_c = Sim.u_c[-1][-1]
-      u_d = Sim.u_d[-1][-1]
-      A_c = Sim.V_c[-1][-1] / Sim.Set.dl
-      A_d = Sim.V_d[-1][-1] / Sim.Set.dl
+      _, u_d, u_c = Sim.velocities(Sim.V_dis[:,-1], Sim.V_d[:,-1], Sim.V_c[:,-1], Sim.N_j, Sim.Set.T, calc_balance=True)
+      A_c = Sim.V_c[-1,-1] / Sim.Set.dl
+      A_d = Sim.V_d[-1,-1] / Sim.Set.dl
       return 100*abs(dV_ges - u_c*A_c - u_d*A_d)/dV_ges
 

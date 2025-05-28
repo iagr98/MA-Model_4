@@ -153,7 +153,7 @@ class input_simulation:
 
         return dV, tau_dd
 
-    def velocities(self, V_dis, V_d, V_c, N_j, t):
+    def velocities(self, V_dis, V_d, V_c, N_j, t, calc_balance=False):
 
         dl = self.Set.dl
         eps_0 = self.Sub.eps_0
@@ -174,11 +174,13 @@ class input_simulation:
         A_dis = V_dis / dl
         A_d = V_d / dl
         A_c = V_c / dl
-        eps_d = np.sum(N_j * (d_j[:, np.newaxis]**3) * (np.pi/6), axis=0) / V_d
+        if (calc_balance):
+            N_j = np.array(N_j)
+            eps_d = np.sum(N_j[:,:,-1] * (d_j[:, np.newaxis]**3) * (np.pi/6), axis=0) / V_d
+        else:
+            eps_d = np.sum(N_j * (d_j[:, np.newaxis]**3) * (np.pi/6), axis=0) / V_d
         u_d = u_0 * np.ones(len(V_dis))
         u_c = u_0 * np.ones(len(V_dis))
-
-        u_d_plot = u_0 * np.ones(len(V_dis))
 
 
         if not hasattr(self, "_last_velocities"):
@@ -203,14 +205,16 @@ class input_simulation:
         else:
             u_dis = self._last_velocities.get('u_dis', np.zeros_like(V_dis))
             u_d   = self._last_velocities.get('u_d',   np.zeros_like(V_d))
-
-        if (t>0):
-            for i in range(len(V_dis)):
-                u_d_plot[i] = (u_0*A_A*(eps_0-1)+u_dis[i]*A_dis[i]*(1-eps_p))/(A_d[i]*(eps_d[i]-1))
-                u_c[i] = (u_0 * A_A - u_dis[i] * A_dis[i] - u_d_plot[i] * A_d[i]) / A_c[i]
+            u_c   = self._last_velocities.get('u_c',   np.zeros_like(V_c))
             self.u_dis.append(u_dis)
             self.u_c.append(u_c)
-            self.u_d.append(u_d_plot)
+            self.u_d.append(u_d)
+
+        if (calc_balance):
+            u_dis = u_dis[-1]
+            u_d = (u_0*A_A*(eps_0-1)+u_dis*A_dis[-1]*(1-eps_p))/(A_d[-1]*(eps_d[-1]-1))
+            u_c = (u_0 * A_A - u_dis * A_dis[-1] - u_d * A_d[-1]) / A_c[-1]
+            
             
 
         return u_dis, u_d, u_c
