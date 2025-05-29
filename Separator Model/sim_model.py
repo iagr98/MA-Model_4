@@ -38,6 +38,7 @@ class input_simulation:
         self.phi_32_term_4 = []
         self.vol_balance = 0
         self.eps = []
+        self.E = 0
 
     def initial_conditions(self, N_D=10):
 
@@ -357,10 +358,6 @@ class input_simulation:
         self.N_j = [y[(j+4)*N_x : (j+5)*N_x] for j in range(N_d)]
         self.Set.t = self.sol.t
 
-
-
-        for i in range(self.V_dis.shape[1]):
-            N_j_i = [Nj[:, i] for Nj in self.N_j]
         end_time = time.time()
 
         # Berechnung  der Extraktionseffizienz
@@ -369,7 +366,7 @@ class input_simulation:
         for i in range(N_d):
             N_end += self.N_j[i][-1][-1]
             N_0 += self.N_j[i][0][0]
-        E = 1 - (N_end/N_0)
+        self.E = 1 - (N_end/N_0)
         H = getHeightArray(self.V_d[:,-1] / dl, D/2)
 
         # print('\nSimulation ended successfully after: ', round(end_time-start_time,1), "s", "\nu_dis = u_d = ", u_dis[0], "[m/s]","\nExtraction efficiency",round(100*E,3), " %", "\nHeight of heavy phase: ", H[-1])
@@ -387,7 +384,7 @@ class input_simulation:
 
         self.V_dis_total = np.sum(self.V_dis[:,-1])
         self.vol_balance = hf.calculate_volume_balance(self)
-        print('dV_ges=', self.Sub.dV_ges, '. phi_32,0=', self.Sub.phi_0, '. V_dis=', self.V_dis_total, ' Volume imbalance=', self.vol_balance,'%')
+        print('dV_ges=', self.Sub.dV_ges, '. phi_32,0=', self.Sub.phi_0, '. V_dis=', self.V_dis_total,'. Sep. Efficiency: ',self.E, '. Volume imbalance=', self.vol_balance,'%')
         print('')
 
 
