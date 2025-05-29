@@ -26,27 +26,35 @@ class input_simulation:
         self.u_dis = []
         self.u_d = []
         self.u_c = []
+        self.u_0 = 0
         self.d_j = []
         
         self.H_DPZ = 0
         self.L_DPZ = 0
         self.V_dis_total = 0
+        self.phi_32_term_1 = []
+        self.phi_32_term_2 = []
+        self.phi_32_term_3 = []
+        self.phi_32_term_4 = []
+        self.vol_balance = 0
+        self.eps = []
 
-    def initial_conditions(self, s=0.32):
+    def initial_conditions(self, N_D=10):
 
         dl = self.Set.dl
         N_x = self.Set.N_x
         R = self.Set.D / 2
         h_dis_0 = self.Set.h_dis_0
         h_c_0 = self.Set.h_c_0
+        self.u_0 = (self.Sub.dV_ges / (np.pi * self.Set.D**2 / 4))
 
         # Einführung der Tropfenanzahl und Tropfendurchmesser
-        hold_up_calc, n_in, d_in, N_in_total = fun.initialize_boundary_conditions(self.Sub.eps_0, self.Sub.phi_0, 2.5*self.Sub.phi_0, s , 'Output', plot=True)
+        hold_up_calc, n_in, d_in, N_in_total = fun.initialize_boundary_conditions(self.Sub.eps_0, self.Sub.phi_0, 2.5*self.Sub.phi_0 , 'Output', N_D, plot=False)
 
         # Berechnungen von Querschnittsflächen
         h_d_0 = 2 * R - h_c_0 - h_dis_0
-        A_d_0 = R**2 * np.arccos((R - h_d_0) / R) - (R - h_d_0) * np.sqrt(2 * R * h_d_0 - h_d_0**2)
-        A_c_0 = R**2 * np.arccos((R - h_c_0) / R) - (R - h_c_0) * np.sqrt(2 * R * h_c_0 - h_c_0**2)
+        A_d_0 = hf.getArea(h_d_0, R)
+        A_c_0 = hf.getArea(h_c_0, R)
         A_dis_0 = self.Set.A - A_d_0 - A_c_0
 
         # Anfangsbedingungen für Volumina
@@ -60,24 +68,50 @@ class input_simulation:
         # Anfangsbedingung für N_j
         factor = (self.Sub.eps_0*Vd_0[0])/((np.pi/6)*np.sum(n_in*d_in**3))
         N_j_0 = (factor*np.round(n_in,decimals=0)).tolist()
-        print('B factor= ', factor)
-        print('Total volume of droplets [m^3] =',(np.pi/6)*np.sum(n_in*d_in**3))
-        print('eps_0 * V_d,0 [m^3] =',self.Sub.eps_0*Vd_0[0])
-        print("Actual number of droplets for given feed Hold-up: ", round(np.sum(N_j_0),0))
+        # print('B factor= ', factor)
+        # print('Total volume of droplets [m^3] =',(np.pi/6)*np.sum(n_in*d_in**3))
+        # print('eps_0 * V_d,0 [m^3] =',self.Sub.eps_0*Vd_0[0])
+        # print("Actual number of droplets for given feed Hold-up: ", round(np.sum(N_j_0),0))
+        # print('Total number of droplet classes: ', len(N_j_0))
         self.d_j = d_in
         for i in range(len(N_j_0)):
             N_j_0[i] = N_j_0[i] * np.ones(N_x)
 
+
         self.y0 = np.concatenate([Vdis_0, Vd_0, Vc_0, phi32_0, np.concatenate(N_j_0)])  # Array als Anfangsbedingung
 
-    # Momentan nicht benutzt
     def getInitialConditions(self, old_Sim):
-        Vdis_0 = old_Sim.V_dis[-1]
-        Vd_0 = old_Sim.V_d[-1]
-        Vc_0 = old_Sim.V_c[-1]
-        phi32_0 = old_Sim.phi_32[-1]
-        N_j_0 = old_Sim.N_j[:, -1]
-        self.y0 = np.concatenate([np.array([Vdis_0, Vd_0, Vc_0, phi32_0])], N_j_0)
+        self.d_j = old_Sim.d_j
+        N_d = len(self.d_j)
+        V_dis0 = old_Sim.V_dis[:,-1]
+        V_d0 = old_Sim.V_d[:,-1]
+        V_c0 = old_Sim.V_c[:,-1]
+        phi_320 = old_Sim.phi_32[:,-1]
+        N_j_0 = [old_Sim.N_j[j][:, -1] for j in range(N_d)]
+        self.y0 = np.concatenate([V_dis0, V_d0, V_c0, phi_320, np.concatenate(N_j_0)])
+
+    # merged 2 simulationsobjekte sodass diese hintereinander geplottet werden können
+    def mergeSims(self, Sim1, Sim2):
+        self.V_dis = np.concatenate((Sim1.V_dis, Sim2.V_dis), axis=1)
+        self.V_d = np.concatenate((Sim1.V_d, Sim2.V_d), axis=1)
+        self.V_c = np.concatenate((Sim1.V_c, Sim2.V_c), axis=1)
+        self.phi_32 = np.concatenate((Sim1.phi_32, Sim2.phi_32), axis=1)
+        self.N_j = [np.concatenate((Sim1.N_j[i], Sim2.N_j[i]), axis=1) for i in range(len(Sim1.d_j))]
+        self.u_dis = np.concatenate((Sim1.u_dis, Sim2.u_dis))
+        self.u_d = np.concatenate((Sim1.u_d, Sim2.u_d))
+        self.u_c = np.concatenate((Sim1.u_c, Sim2.u_c))
+        self.Set.T = Sim1.Set.T + Sim2.Set.T
+        t_1 = Sim1.Set.t
+        t_2 = Sim2.Set.t + Sim1.Set.t[-1]
+        self.Set.t = np.concatenate((t_1, t_2))
+        self.Set.N_x = self.V_dis.shape[0]
+        self.Set.x = np.linspace(0, self.Set.L, self.Set.N_x)
+        self.d_j = Sim1.d_j
+        self.V_dis_total = np.sum(self.V_dis[:,-1])
+        self.u_0 = (self.Sub.dV_ges / (np.pi * self.Set.D**2 / 4))
+        print('dV_ges=', self.Sub.dV_ges, '. phi_32,0=', self.Sub.phi_0, '. V_dis=', self.V_dis_total)
+        print('')
+
 
     def tau(self, h, d_32, ID, sigma, r_s_star):
         La_mod = (self.Sub.g * self.Sub.delta_rho / sigma) ** 0.6 * d_32 * h**0.2
@@ -100,7 +134,7 @@ class input_simulation:
         h_dis = 0
 
         for i in range(len(V_dis)):
-            if phi_32[i] < 0:
+            if phi_32[i] <= 0:
                 phi_32[i] = self.Sub.phi_0 / 10
 
             if V_dis[i] > 0:
@@ -120,11 +154,70 @@ class input_simulation:
 
         return dV, tau_dd
 
-    def velocities(self):
-        N_x = self.Set.N_x
-        u_dis = (self.Sub.dV_ges / (np.pi * self.Set.D**2 / 4)) * np.ones(N_x)
-        u_d = u_dis
-        return u_dis, u_d
+    def velocities(self, V_dis, V_d, V_c, N_j, t, calc_balance=False):
+
+        dl = self.Set.dl
+        dt = self.Set.dt
+        eps_0 = self.Sub.eps_0
+        eps_p = self.Sub.eps_p
+        D = self.Set.D
+        u_0 = (self.Sub.dV_ges / (np.pi * self.Set.D**2 / 4))
+        self.u_0 = u_0
+        A_A = np.pi * (self.Set.D**2 / 4)
+        # u_dis = np.linspace(u_0,0,len(V_dis))                           # Option 1 (Triangle)
+        # u_dis = u_0 * (1 - np.linspace(0, 1, len(V_dis))**2)            # Option 2 (Parabola) u_dis''<0
+        # u_dis = u_0 * (np.linspace(1, 0, len(V_dis))**2)                # Option 3 (Parabola) u_dis''>0
+        u_dis = u_0 * np.cos(np.linspace(0, np.pi/2, self.Set.N_x))     # Option 4 (Cosinus) u_dis''<0
+        u_dis[-1] = 0
+        
+
+        d_j = self.d_j
+        T = self.Set.T
+        A_dis = V_dis / dl
+        A_d = V_d / dl
+        A_c = V_c / dl
+        if (calc_balance):
+            N_j = np.array(N_j)
+            eps_d = np.sum(N_j[:,:,-1] * (d_j[:, np.newaxis]**3) * (np.pi/6), axis=0) / V_d
+        else:
+            eps_d = np.sum(N_j * (d_j[:, np.newaxis]**3) * (np.pi/6), axis=0) / V_d
+        u_d = u_0 * np.ones(len(V_dis))
+        u_c = u_0 * np.ones(len(V_dis))
+
+
+        if not hasattr(self, "_last_velocities"):
+            self._last_velocities = {}
+        # if not hasattr(self, 'last_triggered'):
+        #     self.last_triggered = -1
+
+        # if ((t % (5*dt) < 0.5 and t > T/3 and int(t//(5*dt)) != self.last_triggered) or t==0):
+        #     self.last_triggered = int(t//(5*dt))
+        if (t==0):
+            for i in range(len(V_dis)):
+                u_d[i] = (u_0*A_A*(eps_0-1)+u_dis[i]*A_dis[i]*(1-eps_p))/(A_d[i]*(eps_d[i]-1))
+                u_c[i] = (u_0 * A_A - u_dis[i] * A_dis[i] - u_d[i] * A_d[i]) / A_c[i]
+            self._last_velocities['u_dis'] = u_dis
+            self._last_velocities['u_d'] = u_d
+            self._last_velocities['u_c'] = u_c
+            self.u_dis.append(u_dis)
+            self.u_d.append(u_d)
+            self.u_c.append(u_c)
+        else:
+            u_dis = self._last_velocities.get('u_dis', np.zeros_like(V_dis))
+            u_d   = self._last_velocities.get('u_d',   np.zeros_like(V_d))
+            u_c   = self._last_velocities.get('u_c',   np.zeros_like(V_c))
+            self.u_dis.append(u_dis)
+            self.u_c.append(u_c)
+            self.u_d.append(u_d)
+
+        if (calc_balance):
+            u_dis = u_dis[-1]
+            u_d = (u_0*A_A*(eps_0-1)+u_dis*A_dis[-1]*(1-eps_p))/(A_d[-1]*(eps_d[-1]-1))
+            u_c = (u_0 * A_A - u_dis * A_dis[-1] - u_d * A_d[-1]) / A_c[-1]
+            
+            
+
+        return u_dis, u_d, u_c
     
     def swarm_sedimenation_velocity(self, V_d, N_j):
         d_j = self.d_j
@@ -180,7 +273,8 @@ class input_simulation:
                 h_d_arr[i] = h_d_arr[i-1]
         return h_d_arr
     
-    def simulate_ivp(self):
+    
+    def simulate_ivp(self, atol=1e-6):
 
         start_time = time.time()
         y = []
@@ -194,10 +288,19 @@ class input_simulation:
         N_j = np.zeros((N_d, N_x))
         dN_j_dt = np.zeros((N_d, N_x))
 
+        a_tol = np.concatenate([atol*np.ones(N_x),               # V_dis
+                               atol*np.ones(N_x),               # V_d
+                               atol*np.ones(N_x),               # V_c
+                               atol*np.ones(N_x),               # phi_32
+                               (10^2)*atol*np.ones(N_x*N_d)])  # N_j
+        
+        r_tol = atol*1e3
+        
+
 
         def event(t, y):
-            return np.min(y[:N_x])
-        event.terminal = True   # event stops integration when V_dis<0
+            return np.min(y[:N_x]) # event stops integration when V_dis<0            
+        event.terminal = True   
 
         def fun(t, y):
 
@@ -210,15 +313,20 @@ class input_simulation:
 
 
             dV, tau_dd = self.henschke_input(V_dis, V_d, V_c, phi_32, sigma, r_s_star)
-            u_dis, u_d = self.velocities()
             h_d = self.h_d_array(V_d)
+            u_dis, u_d, _ = self.velocities(V_dis, V_d, V_c, N_j, t)
+            
 
-            dVdis_dt = (u_dis / dl) * (np.roll(V_dis,1) - V_dis) + (1 / eps_p) * self.sedimentation_rate(V_d, N_j) - dV
-            dVd_dt = (u_d / dl) * (np.roll(V_d,1) - V_d) - (1 / eps_p) * self.sedimentation_rate(V_d, N_j) + (1 - eps_p) * dV
+            # Volume balance and sauter mean diameter equations
+            dVdis_dt = (u_dis / dl) * (np.roll(V_dis,1) - V_dis) + (V_dis / dl) * (np.roll(u_dis, 1) - u_dis) + (1 / eps_p) * self.sedimentation_rate(V_d, N_j) - dV
+            dVd_dt = (u_d / dl) * (np.roll(V_d,1) - V_d) + (V_d / dl) * (np.roll(u_d, 1) - u_d) - (1 / eps_p) * self.sedimentation_rate(V_d, N_j) + (1 - eps_p) * dV
+            dphi32_dt = (u_dis / dl) * (np.roll(phi_32,1) - phi_32) + (phi_32 / dl) * (np.roll(u_dis, 1) - u_dis) + (phi_32 / (6 * tau_dd)) + self.source_term_32(V_dis, V_d, phi_32, N_j)
             dVc_dt = -dVdis_dt - dVd_dt
-            dphi32_dt = (u_dis / dl) * (np.roll(phi_32,1) - phi_32) + (phi_32 / (6 * tau_dd)) + self.source_term_32(V_dis, V_d, phi_32, N_j)
+
+            # Population balances
             for j in range(N_d):
-                dN_j_dt[j,:] = (u_d / dl) * (np.roll(N_j[j,:],1) - N_j[j,:]) - N_j[j,:] * self.swarm_sedimenation_velocity(V_d, N_j)[j,:] / h_d
+                dN_j_dt[j,:] = (u_d / dl) * (np.roll(N_j[j,:],1) - N_j[j,:]) + (N_j[j,:] / dl) * (np.roll(u_d, 1) - u_d) - N_j[j,:] * self.swarm_sedimenation_velocity(V_d, N_j)[j,:] / h_d
+                # dN_j_dt[j,:] = (u_d / dl) * (np.roll(N_j[j,:],1) - N_j[j,:]) - N_j[j,:] * self.swarm_sedimenation_velocity(V_d, N_j)[j,:] / h_d
 
             dVdis_dt[0] = 0
             dVd_dt[0] = 0
@@ -227,28 +335,33 @@ class input_simulation:
             for j in range(N_d):
                 dN_j_dt[j,0] = 0
             
-            # if (round(t,1) % 5 == 0):
-            #     print(t)
+            self.phi_32_term_1.append((u_dis / dl) * (np.roll(phi_32,1) - phi_32))
+            self.phi_32_term_2.append((phi_32 / dl) * (np.roll(u_dis, 1) - u_dis))
+            self.phi_32_term_3.append((phi_32 / (6 * tau_dd)))
+            self.phi_32_term_4.append(self.source_term_32(V_dis, V_d, phi_32, N_j))
 
             return np.concatenate([dVdis_dt, dVd_dt, dVc_dt, dphi32_dt, dN_j_dt.flatten()])
         
 
         # Lösung des GDGL-Systems
 
-        self.sol = solve_ivp(fun, (0, self.Set.T), self.y0, t_eval=self.Set.t, method='RK45', events=event)
-        
+        self.sol = solve_ivp(fun, (0, self.Set.T), self.y0, method='RK45', rtol=r_tol, atol=a_tol, events=event, t_eval=self.Set.t)
+        print(self.sol.message, ' at t= ', self.sol.t[-1], 's')
+
 
         y = self.sol.y
         self.V_dis = y[0 : N_x]
         self.V_d = y[N_x : 2*N_x]
         self.V_c = y[2*N_x : 3*N_x]
         self.phi_32 = y[3*N_x : 4*N_x]
-        for j in range(N_d):
-            self.N_j.append(list(y[(j+4)*N_x : (j+5)*N_x]))
+        self.N_j = [y[(j+4)*N_x : (j+5)*N_x] for j in range(N_d)]
         self.Set.t = self.sol.t
 
+
+
+        for i in range(self.V_dis.shape[1]):
+            N_j_i = [Nj[:, i] for Nj in self.N_j]
         end_time = time.time()
-        u_dis, u_d = self.velocities()
 
         # Berechnung  der Extraktionseffizienz
         N_end = 0
@@ -270,11 +383,16 @@ class input_simulation:
         a = np.where(np.abs(h_d_dis - h_d) < 1e-3)[0][0] if np.any(np.abs(h_d_dis - h_d) < 1e-3) else -1
         self.L_DPZ = a * self.Set.dl
         # print('Length of the DPZ at the end of the simulation: ', 1000 * a * self.Set.dl, ' mm')
+        # self.V_dis_total = np.sum(self.V_dis[:,-1])
+
         self.V_dis_total = np.sum(self.V_dis[:,-1])
-
-
-        print('dV_ges= ', self.Sub.dV_ges, 'phi_32,0= ', self.Sub.phi_0, 'V_dis= ', self.V_dis_total)
+        self.vol_balance = hf.calculate_volume_balance(self)
+        print('dV_ges=', self.Sub.dV_ges, '. phi_32,0=', self.Sub.phi_0, '. V_dis=', self.V_dis_total, ' Volume imbalance=', self.vol_balance,'%')
         print('')
+
+
+        # print('dV_ges= ', self.Sub.dV_ges, 'phi_32,0= ', self.Sub.phi_0, 'V_dis= ', self.V_dis_total)
+        # print('')
     
     def plot_solution(self, N_i, N_t, ID):
 
@@ -400,7 +518,8 @@ class input_simulation:
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
 
-        if (plots == ['heights'] or plots == ['hold_up'] or plots == ['velo'] or plots == ['phi_32'] or plots == ['tau']):
+        if (plots == ['heights'] or plots == ['hold_up'] or plots == ['velo'] or plots == ['phi_32'] or plots == ['tau']\
+            or plots == ['phi_32_analysis']):
             fig = plt.figure()
             ax = fig.add_subplot(111)
             #fig, ax = plt.subplots()
@@ -424,12 +543,17 @@ class input_simulation:
         N_j = self.N_j
         d_j = self.d_j
         eps = np.zeros((len(V_dis[:,0]), len(V_dis[0,:])))
+        phi_32_term_1 = self.phi_32_term_1
+        phi_32_term_2 = self.phi_32_term_2
+        phi_32_term_3 = self.phi_32_term_3
+        phi_32_term_4 = self.phi_32_term_4
 
         N = np.array(N_j)
         for i in range(len(V_dis[:,0])):
             for j in range(len(V_dis[0,:])):
                 eps[i][j] = np.sum(N[:,i,j] * (d_j**3) * (np.pi/6)) / V_d[i,j]
 
+        self.eps = eps
         x*=1000
 
 
@@ -444,15 +568,15 @@ class input_simulation:
 
             if key == 'velo':
 
-                ax.plot(x, u_dis[:, frame], color='r', label='dpz')
-                ax.plot(x, u_d[:, frame], color='b', label='disp phase')
-                ax.plot(x, u_c[:, frame], color='g', label='conti phase')
-                ax.plot(x, self.u0 * np.ones_like(u_dis[:, frame]), linestyle='--', color='black', label='u0')
+                ax.plot(x, u_dis[frame], color='r', label='u_dis')
+                ax.plot(x, u_d[frame], color='g', label='u_d')
+                ax.plot(x, u_c[frame], color='b', label='u_c')
+                ax.plot(x, self.u_0 * np.ones_like(u_dis[frame]), linestyle='--', color='black', label='u_0')
 
                 ax.set_xlabel('x in mm')
                 ax.set_ylabel('Geschwindigkeit in m/s')
                 ax.set_xlim(0, x[-1])
-                ax.set_ylim(bottom=0)
+                # ax.set_ylim(bottom=-0.01)
 
             if key == 'phi_32':
                 idx_no_dis = self.Set.N_x
@@ -584,6 +708,19 @@ class input_simulation:
                 ax.set_zlabel('Number of droplets')
                 ax.view_init(elev=30, azim=45)
                 ax.set_title('Time = {:.2f}'.format(t[frame]) + 's, '+' Frame = {:.2f}'.format(frame))
+            
+            if key == 'phi_32_analysis':
+                ax.plot(x, phi_32_term_1[frame] * 1000, label='Term 1', color='b')
+                ax.plot(x, phi_32_term_2[frame] * 1000, label='Term 2', color='g')
+                ax.plot(x, phi_32_term_3[frame] * 1000, label='Term 3', color='r')
+                ax.plot(x, phi_32_term_4[frame] * 1000, label='Term 4', color='c')
+
+                ax.set_xlabel('x in mm')
+                ax.set_ylabel('d()/dt in m/s')
+                ax.set_xlim(0, x[-1])
+                ax.set_ylim(bottom=-0.05, top=0.05)
+                ax.legend()
+
 
         def update(frame):
 
@@ -604,16 +741,3 @@ class input_simulation:
         x /= 1000
 
     #################################################################################################
-
-
-
-        
-            
-
-
-
-           
-
-
-
-           

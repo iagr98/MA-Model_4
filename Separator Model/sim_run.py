@@ -1,18 +1,13 @@
 import sim_model as sim
-import sim_model_modified as sim_mod
 import sim_parameters as sp
-import constants
 import numpy as np
-import helper_functions as hf
-import matplotlib.pyplot as plt
-import os
 
 
 def init_sim(filename, N_x=101):
     Set = sp.Settings(N_x)
     SubSys = sp.Substance_System()
     SubSys.update(filename)
-    return sim_mod.input_simulation(Set, SubSys)
+    return sim.input_simulation(Set, SubSys)
 
 def run_sim(filename, N_D=10, N_x=101, a_tol=1e-6):
     Sim = init_sim(filename, N_x)

@@ -10,8 +10,8 @@ class Settings:
 
     def __init__(self, N_x=101):
         # simulation time
-        self.T = 120
-        self.N_t = 241
+        self.T = 12
+        self.N_t = 25
         self.t = np.linspace(0, self.T, self.N_t)
         self.dt = self.t[1] - self.t[0]
 
