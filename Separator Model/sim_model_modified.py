@@ -157,6 +157,7 @@ class input_simulation:
     def velocities(self, V_dis, V_d, V_c, N_j, t, calc_balance=False):
 
         dl = self.Set.dl
+        dt = self.Set.dt
         eps_0 = self.Sub.eps_0
         eps_p = self.Sub.eps_p
         D = self.Set.D
@@ -186,13 +187,12 @@ class input_simulation:
 
         if not hasattr(self, "_last_velocities"):
             self._last_velocities = {}
-        if not hasattr(self, 'last_triggered'):
-            self.last_triggered = -1
+        # if not hasattr(self, 'last_triggered'):
+        #     self.last_triggered = -1
 
-        # if ((t % (5*dt) < 0.5 and int(t//(5*dt)) != self.last_triggered and coupling) or t==0):
+        # if ((t % (5*dt) < 0.5 and t > T/3 and int(t//(5*dt)) != self.last_triggered) or t==0):
         #     self.last_triggered = int(t//(5*dt))
-        if ((t==0) or (t > T/2 and self.last_triggered < 50)):
-            self.last_triggered += 1
+        if (t==0):
             for i in range(len(V_dis)):
                 u_d[i] = (u_0*A_A*(eps_0-1)+u_dis[i]*A_dis[i]*(1-eps_p))/(A_d[i]*(eps_d[i]-1))
                 u_c[i] = (u_0 * A_A - u_dis[i] * A_dis[i] - u_d[i] * A_d[i]) / A_c[i]
@@ -202,7 +202,6 @@ class input_simulation:
             self.u_dis.append(u_dis)
             self.u_d.append(u_d)
             self.u_c.append(u_c)
-            print('Convective velocities updated at t = ', t, 's')
         else:
             u_dis = self._last_velocities.get('u_dis', np.zeros_like(V_dis))
             u_d   = self._last_velocities.get('u_d',   np.zeros_like(V_d))
@@ -519,7 +518,8 @@ class input_simulation:
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
 
-        if (plots == ['heights'] or plots == ['hold_up'] or plots == ['velo'] or plots == ['phi_32'] or plots == ['tau'] or plots == ['phi_32_analysis']):
+        if (plots == ['heights'] or plots == ['hold_up'] or plots == ['velo'] or plots == ['phi_32'] or plots == ['tau']\
+            or plots == ['phi_32_analysis'] or plots == ['vol_change']):
             fig = plt.figure()
             ax = fig.add_subplot(111)
             #fig, ax = plt.subplots()
@@ -536,6 +536,7 @@ class input_simulation:
         D = self.Set.D
         t = self.Set.t
         x = self.Set.x
+        dV_ges = self.Sub.dV_ges
         N_d = len(self.d_j)
         h_p_star = self.Sub.h_p_star
         phi_32 = self.phi_32
@@ -547,6 +548,9 @@ class input_simulation:
         phi_32_term_2 = self.phi_32_term_2
         phi_32_term_3 = self.phi_32_term_3
         phi_32_term_4 = self.phi_32_term_4
+        dVdis_dt = self.dVdis_dt
+        dVd_dt = self.dVd_dt
+        dVc_dt = self.dVc_dt
 
         N = np.array(N_j)
         for i in range(len(V_dis[:,0])):
@@ -719,6 +723,14 @@ class input_simulation:
                 ax.set_ylabel('d()/dt in m/s')
                 ax.set_xlim(0, x[-1])
                 ax.set_ylim(bottom=-0.05, top=0.05)
+                ax.legend()
+
+            if key == 'vol_change':
+                Delta_V = (abs(dVdis_dt[frame]) + abs(dVd_dt[frame]) + abs(dVc_dt[frame])) / dV_ges
+                ax.plot(x, Delta_V, label='mean volume change', color='b')
+                ax.set_xlabel('x in mm')
+                ax.set_ylabel('Volume change')
+                ax.set_xlim(0, x[-1])
                 ax.legend()
 
         def update(frame):
