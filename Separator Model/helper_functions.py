@@ -44,3 +44,7 @@ def calculate_volume_balance(Sim):
       A_d = Sim.V_d[-1,-1] / Sim.Set.dl
       return 100*abs(dV_ges - u_c*A_c - u_d*A_d)/dV_ges
 
+def calculate_cfl(Sim):
+    u_dis, u_d, u_c = Sim.velocities(Sim.V_dis[:,-1], Sim.V_d[:,-1], Sim.V_c[:,-1], Sim.N_j, Sim.Set.T, calc_balance=True)
+    u = max(u_dis, u_d, u_c)
+    return u * Sim.Set.dt / Sim.Set.dl

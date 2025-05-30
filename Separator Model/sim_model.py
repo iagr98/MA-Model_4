@@ -39,6 +39,7 @@ class input_simulation:
         self.vol_balance = 0
         self.eps = []
         self.E = 0
+        self.cfl = 0
 
     def initial_conditions(self, N_D=10):
 
@@ -384,7 +385,9 @@ class input_simulation:
 
         self.V_dis_total = np.sum(self.V_dis[:,-1])
         self.vol_balance = hf.calculate_volume_balance(self)
+        self.cfl = hf.calculate_cfl(self)
         print('dV_ges=', self.Sub.dV_ges, '. phi_32,0=', self.Sub.phi_0, '. V_dis=', self.V_dis_total,'. Sep. Efficiency: ',self.E, '. Volume imbalance=', self.vol_balance,'%')
+        print('N_x: ', self.Set.N_x, '. cfl number: ', self.cfl)
         print('')
 
 
