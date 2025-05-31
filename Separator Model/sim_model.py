@@ -39,6 +39,7 @@ class input_simulation:
         self.vol_balance = 0
         self.eps = []
         self.E = 0
+        self.cfl = 0
 
     def initial_conditions(self, N_D=10):
 
