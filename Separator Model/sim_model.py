@@ -384,7 +384,7 @@ class input_simulation:
 
         self.V_dis_total = np.sum(self.V_dis[:,-1])
         self.vol_balance = hf.calculate_volume_balance(self)
-        print('dV_ges=', self.Sub.dV_ges, '. phi_32,0=', self.Sub.phi_0, '. V_dis=', self.V_dis_total,'. Sep. Efficiency: ',self.E, '. Volume imbalance=', self.vol_balance,'%')
+        print('dV_ges=', self.Sub.dV_ges, '. phi_32,0=', self.Sub.phi_0, '. Hold-up=',self.Sub.eps_0, '. V_dis=', self.V_dis_total,'. Sep. Efficiency: ',self.E, '. Volume imbalance=', self.vol_balance,'%')
         print('')
 
 
