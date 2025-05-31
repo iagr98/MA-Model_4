@@ -8,12 +8,12 @@ from sim_run import run_sim
 N_CPU = 8
 
 
-exp = ["ye", "niba1", "niba3"]
-phi_0 = [325e-6, 700e-6, 635e-6]
-dV_ges = [200 / 3.6 * 1e-6, 2350  / 3.6 * 1e-6, 1150 / 3.6 * 1e-6]
-eps_0 = [0.2, 0.3, 0.5]
+df = pd.read_excel("Input/data_main.xlsx", sheet_name="main")
+exp = df['exp'].tolist()
+phi_0 = df['phi_0'].tolist()
+dV_ges = df['dV_ges'].tolist()
+eps_0 = df['eps_0'].tolist()
 
-var = 'N_x'             # Define
 
 
 def parallel_simulation(params):
