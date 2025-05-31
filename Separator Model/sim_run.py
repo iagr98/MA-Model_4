@@ -18,7 +18,7 @@ def init_sim(exp, phi_0, dV_ges, eps_0, N_x=101):
     SubSys = sp.Substance_System()
     SubSys.update(filename)
     SubSys.phi_0 = phi_0
-    SubSys.dV_ges = dV_ges
+    SubSys.dV_ges = dV_ges / 3.6 * 1e-6
     SubSys.eps_0 = eps_0
     return sim.input_simulation(Set, SubSys)
 
@@ -37,9 +37,9 @@ if __name__ == "__main__":
     N_x = 101
     a_tol = 1e-6
 
-    exp = "niba3"
-    phi_0 = 635e-6
-    dV_ges = 1150 / 3.6 * 1e-6
+    exp = "ye"
+    phi_0 = 281e-6
+    dV_ges = 160
     eps_0 = 0.5
     
 

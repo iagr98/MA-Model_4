@@ -5,7 +5,7 @@ import joblib
 import helper_functions as hf
 from sim_run import run_sim
 
-N_CPU = 8
+N_CPU = 7
 
 
 df = pd.read_excel("Input/data_main.xlsx", sheet_name="main")
