@@ -8,7 +8,7 @@ import helper_functions as hf
 
 class Settings:
 
-    def __init__(self, N_x=101, L=0.56, D=0.15, h_c_0=0.055, h_dis_0=0.04):
+    def __init__(self, N_x=101, L=0.56, D=0.15, h_d_0=0.055, h_dis_0=0.04):
         # simulation time
         self.T = 300
         self.N_t = 601
@@ -25,7 +25,7 @@ class Settings:
         self.delta_V = self.A * self.dl
 
         # Annahme der Anfangsbedingungen
-        self.h_c_0 = h_c_0
+        self.h_d_0 = h_d_0
         self.h_dis_0 = h_dis_0
 
     def reduce_Nx(

@@ -6,9 +6,9 @@ import numpy as np
 def init_sim(exp, phi_0, dV_ges, eps_0, N_x=101):
     if (exp == "ye"):
         filename = "Paraffin_flut_20C.xlsx"
-        Set = sp.Settings(N_x=N_x, L=0.56, D=0.15, h_c_0=0.055, h_dis_0=0.04)
+        Set = sp.Settings(N_x=N_x, L=0.56, D=0.15, h_d_0=0.055, h_dis_0=0.04)
     elif(exp == "niba1" or exp == "niba2" or exp == "niba3" or exp == "niba4"):
-        Set = sp.Settings(N_x=N_x, L=1.0, D=0.2, h_c_0=0.1, h_dis_0=0.03)
+        Set = sp.Settings(N_x=N_x, L=1.0, D=0.2, h_d_0=0.1, h_dis_0=0.03)
         filename = "niba_V1.xlsx" if exp == "niba1" else \
         "niba_V2.xlsx" if exp == "niba2" else \
         "niba_V3.xlsx" if exp == "niba3" else \
@@ -22,7 +22,7 @@ def init_sim(exp, phi_0, dV_ges, eps_0, N_x=101):
     SubSys.eps_0 = eps_0
     return sim.input_simulation(Set, SubSys)
 
-def run_sim(exp="ye", phi_0=610e-6, dV_ges=240/3.6*1e-6, eps_0=0.2, N_D=20, N_x=101, a_tol=1e-6):
+def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.2, N_D=20, N_x=101, a_tol=1e-6):
     Sim = init_sim(exp, phi_0, dV_ges, eps_0, N_x)
     Sim.initial_conditions(N_D)
     Sim.simulate_ivp(atol=a_tol)

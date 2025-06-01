@@ -47,14 +47,14 @@ class input_simulation:
         N_x = self.Set.N_x
         R = self.Set.D / 2
         h_dis_0 = self.Set.h_dis_0
-        h_c_0 = self.Set.h_c_0
+        h_d_0 = self.Set.h_d_0
         self.u_0 = (self.Sub.dV_ges / (np.pi * self.Set.D**2 / 4))
 
         # Einführung der Tropfenanzahl und Tropfendurchmesser
         hold_up_calc, n_in, d_in, N_in_total = fun.initialize_boundary_conditions(self.Sub.eps_0, self.Sub.phi_0, 2.5*self.Sub.phi_0 , 'Output', N_D, plot=False)
 
         # Berechnungen von Querschnittsflächen
-        h_d_0 = 2 * R - h_c_0 - h_dis_0
+        h_c_0 = 2 * R - h_d_0 - h_dis_0
         A_d_0 = hf.getArea(h_d_0, R)
         A_c_0 = hf.getArea(h_c_0, R)
         A_dis_0 = self.Set.A - A_d_0 - A_c_0
