@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-df_sim = pd.read_csv("Output/simulation_results_parallel_evaluation_lin.csv")
+df_sim = pd.read_csv("Output/simulation_results_parallel_evaluation_cos.csv")
 
 df_lab = pd.read_excel("Input/data_main.xlsx", sheet_name="main")
 
