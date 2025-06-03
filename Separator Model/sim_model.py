@@ -363,12 +363,12 @@ class input_simulation:
         end_time = time.time()
 
         # Berechnung  der Extraktionseffizienz
-        N_end = 0
-        N_0 = 0
-        for i in range(N_d):
-            N_end += self.N_j[i][-1][-1]
-            N_0 += self.N_j[i][0][0]
-        self.E = 1 - (N_end/N_0)
+        V_end = 0
+        V_0 = 0
+        for j in range(N_d):
+            V_end += (np.pi/6)*(self.d_j[j]**3)*self.N_j[j][-1][-1]
+            V_0 += (np.pi/6)*(self.d_j[j]**3)*self.N_j[j][0][0]
+        self.E = 1 - (V_end/V_0)
         H = getHeightArray(self.V_d[:,-1] / dl, D/2)
 
         # print('\nSimulation ended successfully after: ', round(end_time-start_time,1), "s", "\nu_dis = u_d = ", u_dis[0], "[m/s]","\nExtraction efficiency",round(100*E,3), " %", "\nHeight of heavy phase: ", H[-1])
