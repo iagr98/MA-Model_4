@@ -22,7 +22,7 @@ def init_sim(exp, phi_0, dV_ges, eps_0, N_x=101):
     SubSys.eps_0 = eps_0
     return sim.input_simulation(Set, SubSys)
 
-def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.2, N_D=20, N_x=101, a_tol=1e-6):
+def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.2, N_D=20, N_x=201, a_tol=1e-6):
     Sim = init_sim(exp, phi_0, dV_ges, eps_0, N_x)
     Sim.initial_conditions(N_D)
     Sim.simulate_ivp(atol=a_tol)
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     # filename = "Paraffin_flut_20C.xlsx"
     # filename = "niba_V2.xlsx"
     N_D = 20
-    N_x = 101
+    N_x = 201
     a_tol = 1e-6
 
     exp = "niba4"
