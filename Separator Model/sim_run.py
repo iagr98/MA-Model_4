@@ -23,7 +23,9 @@ def init_sim(exp, phi_0, dV_ges, eps_0, h_d_0, h_dis_0, N_x):
         "15mmolNa2CO3_20C.xlsx" if exp == "15mmol_20C" else \
         "15mmolNa2CO3_30C.xlsx" if exp == "15mmol_30C" else None
     else:
-        print('Test does not belong to either Ye or Niba.')
+        print('Test does not belong to either Ye Niba or sozh. D=0.3 m, L=1.0 m and substance data from Butylacetat taken')
+        filename = "Butylacetat_1_5_144.xlsx"
+        Set = sp.Settings(N_x=N_x, L=1.0, D=0.3, h_d_0=0.1, h_dis_0=0.1)
     SubSys = sp.Substance_System()
     SubSys.update(filename)
     SubSys.phi_0 = phi_0
@@ -31,7 +33,7 @@ def init_sim(exp, phi_0, dV_ges, eps_0, h_d_0, h_dis_0, N_x):
     SubSys.eps_0 = eps_0
     return sim.input_simulation(Set, SubSys)
 
-def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.2, h_d_0=0.1, h_dis_0=0.05, N_D=20, N_x=201, a_tol=1e-6):
+def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.5, h_d_0=0.1, h_dis_0=0.05, N_D=20, N_x=201, a_tol=1e-6):
     Sim = init_sim(exp, phi_0, dV_ges, eps_0, h_d_0, h_dis_0, N_x)
     Sim.initial_conditions(N_D)
     Sim.simulate_ivp(atol=a_tol)
@@ -43,14 +45,14 @@ if __name__ == "__main__":
     # filename = "Paraffin_flut_20C.xlsx"
     # filename = "niba_V2.xlsx"
     
-    exp = "2mmol_30C"
-    phi_0 = 630e-6
-    dV_ges = 240
+    exp = "sensitivity"
+    phi_0 = 550e-6
+    dV_ges = 350
     eps_0 = 0.5
     h_d_0 = 0.1
     h_dis_0 = 0.05
     
-    Sim = run_sim(exp, phi_0, dV_ges, eps_0, h_d_0, h_dis_0)
+    Sim = run_sim(exp='sensitivity', phi_0=phi_0, dV_ges=dV_ges, eps_0=0.5)
 
     # Animationen
 
