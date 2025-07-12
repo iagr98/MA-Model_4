@@ -40,6 +40,7 @@ class input_simulation:
         self.eps = []
         self.E = 0
         self.cfl = 0
+        self.factor = 0
 
     def initial_conditions(self, N_D=10):
 
@@ -378,6 +379,7 @@ class input_simulation:
         h_d_dis = getHeightArray((self.V_d[:, len(self.Set.t) - 1] + self.V_dis[:, len(self.Set.t) - 1])/self.Set.dl, self.Set.D/2)
         h_dis = max(h_d_dis) - min(h_d)
         self.H_DPZ = h_dis
+        self.factor = self.HDPZ / self.Set.h_dis_0
         # print('Height of the DPZ at the end of the simulation: ', 1000 * h_dis , ' mm')
         a = np.where(np.abs(h_d_dis - h_d) < 1e-3)[0][0] if np.any(np.abs(h_d_dis - h_d) < 1e-3) else -1
         self.L_DPZ = a * self.Set.dl
@@ -387,6 +389,7 @@ class input_simulation:
         self.V_dis_total = np.sum(self.V_dis[:,-1])
         self.vol_balance = hf.calculate_volume_balance(self)
         print('dV_ges=', self.Sub.dV_ges, '. phi_32,0=', self.Sub.phi_0, '. Hold-up=',self.Sub.eps_0, '. V_dis=', self.V_dis_total,'. Sep. Efficiency: ',self.E, '. Volume imbalance=', self.vol_balance,'%')
+        print('factor: ', self.factor)
         print('')
 
 

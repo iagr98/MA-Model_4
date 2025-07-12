@@ -45,14 +45,14 @@ if __name__ == "__main__":
     # filename = "Paraffin_flut_20C.xlsx"
     # filename = "niba_V2.xlsx"
     
-    exp = "sensitivity"
-    phi_0 = 550e-6
-    dV_ges = 350
-    eps_0 = 0.5
-    h_d_0 = 0.1
-    h_dis_0 = 0.05
-    
-    Sim = run_sim(exp='sensitivity', phi_0=phi_0, dV_ges=dV_ges, eps_0=0.5)
+    exp = "10mmol_21C"
+    phi_0 = 0.000543618
+    dV_ges = 1286.2615
+    eps_0 = 0.501457357
+    h_d_0 = 0.101831532
+    h_dis_0 = 0.048427868
+
+    Sim = run_sim(exp=exp, phi_0=phi_0, dV_ges=dV_ges, eps_0=eps_0, h_d_0=h_d_0, h_dis_0=h_dis_0)
 
     # Animationen
 
