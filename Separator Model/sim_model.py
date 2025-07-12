@@ -379,7 +379,7 @@ class input_simulation:
         h_d_dis = getHeightArray((self.V_d[:, len(self.Set.t) - 1] + self.V_dis[:, len(self.Set.t) - 1])/self.Set.dl, self.Set.D/2)
         h_dis = max(h_d_dis) - min(h_d)
         self.H_DPZ = h_dis
-        self.factor = self.HDPZ / self.Set.h_dis_0
+        self.factor = self.H_DPZ / self.Set.h_dis_0
         # print('Height of the DPZ at the end of the simulation: ', 1000 * h_dis , ' mm')
         a = np.where(np.abs(h_d_dis - h_d) < 1e-3)[0][0] if np.any(np.abs(h_d_dis - h_d) < 1e-3) else -1
         self.L_DPZ = a * self.Set.dl
