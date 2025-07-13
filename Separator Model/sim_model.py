@@ -41,6 +41,7 @@ class input_simulation:
         self.E = 0
         self.cfl = 0
         self.factor = 0
+        self.status = 0
 
     def initial_conditions(self, N_D=10):
 
@@ -351,7 +352,7 @@ class input_simulation:
 
         self.sol = solve_ivp(fun, (0, self.Set.T), self.y0, method='RK45', rtol=r_tol, atol=a_tol, events=event, t_eval=self.Set.t)
         print(self.sol.message, ' at t= ', self.sol.t[-1], 's')
-
+        self.status = self.sol.status
 
         y = self.sol.y
         self.V_dis = y[0 : N_x]
