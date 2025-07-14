@@ -41,10 +41,9 @@ def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.5, h_d_0=0.1, h_dis_0=0.
     if (exp == "2mmol_21C" or exp == "2mmol_30C" or exp == "5mmol_30C" or exp == "10mmol_21C" or exp == "10mmol_30C" or exp == "15mmol_20C" or exp == "15mmol_30C"):
         if (Sim.status == 1):
             h_dis_0 = h_dis_0 / Sim.factor
-            Sim1 = init_sim(exp, phi_0, dV_ges, eps_0, h_d_0, h_dis_0, N_x)
-            Sim1.initial_conditions(N_D)
-            Sim1.simulate_ivp(atol=a_tol)
-            Sim.mergeSims(Sim, Sim1)
+            Sim = init_sim(exp, phi_0, dV_ges, eps_0, h_d_0, h_dis_0, N_x)
+            Sim.initial_conditions(N_D)
+            Sim.simulate_ivp(atol=a_tol)
         else:
             print("No simulation coupling due to DPZ flooding")
     return Sim
