@@ -1,6 +1,7 @@
 import sim_model as sim
 import sim_parameters as sp
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def init_sim(exp, phi_0, dV_ges, eps_0, h_d_0, h_dis_0, N_x):
@@ -54,15 +55,17 @@ if __name__ == "__main__":
     # filename = "Paraffin_flut_20C.xlsx"
     # filename = "niba_V2.xlsx"
     
-    exp = "2mmol_21C"
-    phi_0 = 0.000741807
-    dV_ges = 1500.215265
-    eps_0 = 0.399939766
+    exp = "sensitivity"
+    phi_0 = 500e-6
+    dV_ges = 250
+    eps_0 = 0.5
     h_d_0 = 0.097766817
     h_dis_0 = 0.027369943
 
     Sim = run_sim(exp=exp, phi_0=phi_0, dV_ges=dV_ges, eps_0=eps_0, h_d_0=h_d_0, h_dis_0=h_dis_0)
-
+    plt.plot(Sim.h_d)
+    plt.plot(Sim.h_dpz)
+    plt.show()
     # Animationen
 
     # zu Phasenhöhe, Sauterdrchmesser und Hold-Up

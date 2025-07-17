@@ -42,6 +42,8 @@ class input_simulation:
         self.cfl = 0
         self.factor = 0
         self.status = 0
+        self.h_dpz = []
+        self.h_d = []
 
     def initial_conditions(self, N_D=10):
 
@@ -386,6 +388,8 @@ class input_simulation:
         self.L_DPZ = a * self.Set.dl
         # print('Length of the DPZ at the end of the simulation: ', 1000 * a * self.Set.dl, ' mm')
         # self.V_dis_total = np.sum(self.V_dis[:,-1])
+        self.h_dpz = h_d_dis
+        self.h_d = h_d
 
         self.V_dis_total = np.sum(self.V_dis[:,-1])
         self.vol_balance = hf.calculate_volume_balance(self)
