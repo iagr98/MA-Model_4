@@ -73,12 +73,12 @@ if __name__ == "__main__":
         
     n = 201  # Adjust to expected max length of h_d and h_dpz
     base_fields = ['exp', 'phi_0', 'dV_ges', 'eps_0', 'h_d_0', 'h_dis_0', 'V_dis_total', 'Sep. Eff.', 'Vol_imbalance [%]', 'status']
-    h_d_fields = [f'h_d_{i}' for i in range(n)]
+    h_d_fields = [f'h_d_{i}' for i in range(1,n)]
     h_dpz_fields = [f'h_dpz_{i}' for i in range(n)]
     all_fields = base_fields + h_d_fields + h_dpz_fields
     # Header der CSV-Datei schreiben, falls sie noch nicht existiert
-    with open('simulation_results_parallel_evaluation_sozh_opt_2.csv', mode='w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=['exp', 'phi_0', 'dV_ges', 'eps_0', 'h_d_0', 'h_dis_0', 'V_dis_total', 'Sep. Eff.', 'Vol_imbalance [%]', 'status', 'error'])
+    with open('simulation_results_parallel_evaluation_detail.csv', mode='w', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=all_fields)
         writer.writeheader()
 
     results = joblib.Parallel(n_jobs=N_CPU, backend='multiprocessing')(joblib.delayed(parallel_simulation)(param) for param in parameters)
