@@ -1,6 +1,7 @@
 import sim_model as sim
 import sim_parameters as sp
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 
@@ -54,13 +55,16 @@ if __name__ == "__main__":
 
     # filename = "Paraffin_flut_20C.xlsx"
     # filename = "niba_V2.xlsx"
-    
-    exp = "sensitivity"
-    phi_0 = 500e-6
-    dV_ges = 250
-    eps_0 = 0.5
-    h_d_0 = 0.097766817
-    h_dis_0 = 0.027369943
+
+    test = 10
+    data = pd.read_excel("Input/data_main.xlsx", sheet_name="detail_V_dis")
+    exp = data['exp'][test]
+    phi_0 = data['phi_0'][test]
+    dV_ges = data['dV_ges'][test]
+    eps_0 = data['eps_0'][test]
+    h_d_0 = data['h_c_0'][test]
+    h_dis_0 = data['h_dis_max'][test]
+    print('Simulation inputs: exp={}, phi_0={}, dV_ges={}, eps_0={}'.format(exp, phi_0, dV_ges, eps_0))
 
     Sim = run_sim(exp=exp, phi_0=phi_0, dV_ges=dV_ges, eps_0=eps_0, h_d_0=h_d_0, h_dis_0=h_dis_0)
     plt.plot(Sim.h_d)
