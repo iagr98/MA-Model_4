@@ -56,7 +56,7 @@ if __name__ == "__main__":
     # filename = "Paraffin_flut_20C.xlsx"
     # filename = "niba_V2.xlsx"
 
-    test = 10
+    test = 100
     data = pd.read_excel("Input/data_main.xlsx", sheet_name="detail_V_dis")
     exp = data['exp'][test]
     phi_0 = data['phi_0'][test]
@@ -85,5 +85,5 @@ if __name__ == "__main__":
     # eSim.plot_anim(plots)
 
     # zu Phasenhöhe
-    plots = ['heights','phi_32', 'hold_up']
+    plots = ['heights']
     Sim.plot_anim(plots)
