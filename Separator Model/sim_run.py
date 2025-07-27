@@ -69,9 +69,7 @@ if __name__ == "__main__":
     print('Simulation inputs: exp={}, phi_0={}, dV_ges={}, eps_0={}'.format(exp, phi_0, dV_ges, eps_0))
 
     Sim = run_sim(exp=exp, phi_0=phi_0, dV_ges=dV_ges, eps_0=eps_0, h_d_0=h_d_0, h_dis_0=h_dis_0)
-    plt.plot(Sim.h_d)
-    plt.plot(Sim.h_dpz)
-    plt.show()
+    print(Sim.E)
     # Animationen
 
     # zu Phasenhöhe, Sauterdrchmesser und Hold-Up

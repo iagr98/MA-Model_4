@@ -92,9 +92,6 @@ interp_nearest = NearestNDInterpolator(points, delta)
 
 
 def E_interpolator(x):
-    if x[2] > 300:
-        raise ValueError("phi_0 exceeds maximum allowed value of 300 um")
-
     val = interp_lin(x)
     if np.isnan(val):
         return interp_nearest(x)  # Fallback extrapolation
