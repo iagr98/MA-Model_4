@@ -375,6 +375,10 @@ class input_simulation:
             V_end += (np.pi/6)*(self.d_j[j]**3)*self.N_j[j][-1][-1]
             V_0 += (np.pi/6)*(self.d_j[j]**3)*self.N_j[j][0][0]
         self.E = 1 - (V_end/V_0)
+
+        if (self.Sub.phi_0):
+            delta_E = hf.E_interpolator(([self.Sub.eps_0, self.Sub.dV_ges*3.6*1e6, self.Sub.phi_0*1e6]))
+            self.E = self.E + delta_E
         H = getHeightArray(self.V_d[:,-1] / dl, D/2)
 
         # print('\nSimulation ended successfully after: ', round(end_time-start_time,1), "s", "\nu_dis = u_d = ", u_dis[0], "[m/s]","\nExtraction efficiency",round(100*E,3), " %", "\nHeight of heavy phase: ", H[-1])

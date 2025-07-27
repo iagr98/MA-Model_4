@@ -56,14 +56,16 @@ if __name__ == "__main__":
     # filename = "Paraffin_flut_20C.xlsx"
     # filename = "niba_V2.xlsx"
 
-    test = 100
-    data = pd.read_excel("Input/data_main.xlsx", sheet_name="detail_V_dis")
+    test = 11
+    data = pd.read_excel("Input/data_main.xlsx", sheet_name="detail_lambda")
     exp = data['exp'][test]
     phi_0 = data['phi_0'][test]
     dV_ges = data['dV_ges'][test]
     eps_0 = data['eps_0'][test]
-    h_d_0 = data['h_c_0'][test]
-    h_dis_0 = data['h_dis_max'][test]
+    # h_d_0 = data['h_c_0'][test]
+    # h_dis_0 = data['h_dis_max'][test]
+    h_d_0 = True
+    h_dis_0 = True
     print('Simulation inputs: exp={}, phi_0={}, dV_ges={}, eps_0={}'.format(exp, phi_0, dV_ges, eps_0))
 
     Sim = run_sim(exp=exp, phi_0=phi_0, dV_ges=dV_ges, eps_0=eps_0, h_d_0=h_d_0, h_dis_0=h_dis_0)
