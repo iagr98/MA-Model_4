@@ -9,7 +9,7 @@ import csv
 N_CPU = 8
 
 dV_ges = [250, 500, 750, 1000, 1250, 1500, 1750, 2000]
-phi_0 = [200e-6, 250e-6, 300e-6, 350e-6, 400e-6, 450e-6, 500e-6, 550e-6, 600e-6, 650e-6, 700e-6, 750e-6, 800e-6, 850e-6, 900e-6, 950e-6, 1000e-6]
+phi_0 = [100e-6, 150e-6, 200e-6, 225e-6, 300e-6, 500e-6]
 
 def parallel_simulation(params):    
     phi_0, dV_ges = params
@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     # Save results
     df_results = pd.DataFrame(results)
-    df_results.to_csv('simulation_results_sensitivity_lambda.csv', index=False)
+    df_results.to_csv('simulation_results_sensitivity_lambda_offset.csv', index=False)
     print("Alle Simulationen abgeschlossen. Ergebnisse gespeichert.")
 
    
