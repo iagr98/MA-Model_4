@@ -17,17 +17,17 @@ def parallel_simulation(params):
     try:
         Sim = run_sim(exp='sensitivity', phi_0=phi_0, dV_ges=dV_ges, eps_0=0.5)
         result = {'phi_0': phi_0, 'dV_ges': dV_ges,'Sep. Eff.': Sim.E,'Vol_imbalance [%]': hf.calculate_volume_balance(Sim), 'status': 'success'}   
-         # Schreibe das Ergebnis sofort in die CSV-Datei
-        # with open('simulation_results_parallel_evaluation_sozh_opt_2.csv', mode='a', newline='') as file:
-        #     writer = csv.DictWriter(file, fieldnames=result.keys())
-        #     writer.writerow(result)
+        #  Schreibe das Ergebnis sofort in die CSV-Datei
+        with open('simulation_results_sensitivity_lambda_offset.csv', mode='a', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=result.keys())
+            writer.writerow(result)
         return result 
     except Exception as e:
         print(f"Simulation failed for phi_0={phi_0}, dV_ges={dV_ges}: {str(e)}")
         error_result = {'phi_0': phi_0, 'dV_ges': dV_ges, 'error': str(e), 'status': 'failed'}
-        # with open('simulation_results_parallel_evaluation_sozh_opt_2.csv', mode='a', newline='') as file:
-        #     writer = csv.DictWriter(file, fieldnames=error_result.keys())
-        #     writer.writerow(error_result)
+        with open('simulation_results_sensitivity_lambda_offset.csv', mode='a', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=error_result.keys())
+            writer.writerow(error_result)
         return error_result
 
 if __name__ == "__main__":
@@ -35,15 +35,15 @@ if __name__ == "__main__":
     parameters = [(phi, dV) for dV in dV_ges for phi in phi_0]
         
     # Header der CSV-Datei schreiben, falls sie noch nicht existiert
-    # with open('simulation_results_parallel_evaluation_sozh_opt_2.csv', mode='w', newline='') as file:
-    #     writer = csv.DictWriter(file, fieldnames=['exp', 'phi_0', 'dV_ges', 'eps_0', 'h_d_0', 'h_dis_0', 'V_dis_total', 'Sep. Eff.', 'Vol_imbalance [%]', 'status', 'error'])
-    #     writer.writeheader()
+    with open('simulation_results_sensitivity_lambda_offset.csv', mode='w', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=['phi_0', 'dV_ges', 'Sep. Eff.', 'Vol_imbalance [%]', 'status', 'error'])
+        writer.writeheader()
 
     results = joblib.Parallel(n_jobs=N_CPU, backend='multiprocessing')(joblib.delayed(parallel_simulation)(param) for param in parameters)
 
     # Save results
     df_results = pd.DataFrame(results)
-    df_results.to_csv('simulation_results_sensitivity_lambda_offset.csv', index=False)
+    df_results.to_csv('simulation_results_sensitivity_lambda_offset_1.csv', index=False)
     print("Alle Simulationen abgeschlossen. Ergebnisse gespeichert.")
 
    
