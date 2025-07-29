@@ -42,6 +42,8 @@ class input_simulation:
         self.cfl = 0
         self.factor = 0
         self.status = 0
+        self.condition_2 = False
+        self.dpz_flooded = False
         self.h_dpz = []
         self.h_c = []
 
@@ -305,8 +307,8 @@ class input_simulation:
             V_tot = A*dl
             condition_1 = np.min(V_dis) < 0 # (Boolean) Simulation stops if V_dis (DPZ) dissapears
             indices = np.where((V_c+V_dis)>=V_tot)                       
-            condition_2 = np.any(np.diff(indices) > 1) # (Boolean) Simulation stops if DPZ is not flooded at the end of separator
-            return 0 if (condition_1 or condition_2) else 1
+            self.condition_2 = np.any(np.diff(indices) > 1) # (Boolean) Simulation stops if DPZ is not flooded at the end of separator
+            return 0 if (condition_1 or self.condition_2) else 1
         event.terminal = True   
 
         def fun(t, y):
@@ -366,6 +368,14 @@ class input_simulation:
         self.phi_32 = y[3*N_x : 4*N_x]
         self.N_j = [y[(j+4)*N_x : (j+5)*N_x] for j in range(N_d)]
         self.Set.t = self.sol.t
+
+        if (self.condition_2):      # For correct plotting of DPZ as flooded
+            V_tot = A*dl
+            V_c_end = self.V_c[:,len(self.Set.t)-1]
+            V_dis_end = self.V_dis[:,len(self.Set.t)-1]
+            indices = np.where((V_c_end+V_dis_end)>=V_tot)                       
+            self.V_dis[indices[0]:,len(self.Set.t)-1] = V_tot - V_c_end[indices[0],:]
+
 
         end_time = time.time()
 
