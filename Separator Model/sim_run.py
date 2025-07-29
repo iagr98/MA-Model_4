@@ -40,14 +40,14 @@ def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.5, h_c_0=0.1, h_dis_0=0.
     Sim = init_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, N_x)
     Sim.initial_conditions(N_D)
     Sim.simulate_ivp(atol=a_tol)
-    if (exp == "2mmol_21C" or exp == "2mmol_30C" or exp == "5mmol_30C" or exp == "10mmol_21C" or exp == "10mmol_30C" or exp == "15mmol_20C" or exp == "15mmol_30C"):
-        if (Sim.status == 1):
-            h_dis_0 = h_dis_0 / Sim.factor
-            Sim = init_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, N_x)
-            Sim.initial_conditions(N_D)
-            Sim.simulate_ivp(atol=a_tol)
-        else:
-            print("No simulation coupling due to DPZ flooding")
+    # if (exp == "2mmol_21C" or exp == "2mmol_30C" or exp == "5mmol_30C" or exp == "10mmol_21C" or exp == "10mmol_30C" or exp == "15mmol_20C" or exp == "15mmol_30C"):
+    #     if (Sim.status == 1):
+    #         h_dis_0 = h_dis_0 / Sim.factor
+    #         Sim = init_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, N_x)
+    #         Sim.initial_conditions(N_D)
+    #         Sim.simulate_ivp(atol=a_tol)
+    #     else:
+    #         print("No simulation coupling due to DPZ flooding")
     return Sim
 
 
