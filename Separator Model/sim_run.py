@@ -56,7 +56,7 @@ if __name__ == "__main__":
     # filename = "Paraffin_flut_20C.xlsx"
     # filename = "niba_V2.xlsx"
 
-    test = 63
+    test = 6
     sheet = 'detail_V_dis'
     data = pd.read_excel("Input/data_main.xlsx", sheet_name=sheet)
     exp = data['exp'][test]

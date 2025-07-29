@@ -285,7 +285,7 @@ class input_simulation:
         eps_p = self.Sub.eps_p
         sigma = self.Sub.sigma * np.ones(N_x)
         r_s_star = self.Sub.r_s_star * np.ones(N_x)
-        D = self.Set.D
+        A = self.Set.A
         N_j = np.zeros((N_d, N_x))
         dN_j_dt = np.zeros((N_d, N_x))
 
@@ -300,7 +300,13 @@ class input_simulation:
 
 
         def event(t, y):
-            return np.min(y[:N_x]) # event stops integration when V_dis<0            
+            V_dis = y[:N_x]
+            V_c = y[N_x:2*N_x]
+            V_tot = A*dl
+            condition_1 = np.min(V_dis) < 0 # (Boolean) Simulation stops if V_dis (DPZ) dissapears
+            indices = np.where((V_c+V_dis)>=V_tot)                       
+            condition_2 = np.any(np.diff(indices) > 1) # (Boolean) Simulation stops if DPZ is not flooded at the end of separator
+            return 0 if (condition_1 or condition_2) else 1
         event.terminal = True   
 
         def fun(t, y):
