@@ -40,62 +40,13 @@ def calculate_volume_balance(Sim):
       """ Berechnet die Volumenbilanz für die Simulation
        Ausgabe in prozent """
       dV_ges = Sim.Sub.dV_ges
-      _, u_d, u_c = Sim.velocities(Sim.V_dis[:,-1], Sim.V_d[:,-1], Sim.V_c[:,-1], Sim.N_j, Sim.Set.T, calc_balance=True)
-      A_c = Sim.V_c[-1,-1] / Sim.Set.dl
+      _, u_c, u_d = Sim.velocities(Sim.V_dis[:,-1], Sim.V_c[:,-1], Sim.V_d[:,-1], Sim.N_j, Sim.Set.T, calc_balance=True)
       A_d = Sim.V_d[-1,-1] / Sim.Set.dl
+      A_c = Sim.V_c[-1,-1] / Sim.Set.dl
       return 100*abs(dV_ges - u_c*A_c - u_d*A_d)/dV_ges
 
 def calculate_cfl(Sim):
-    u_dis, u_d, u_c = Sim.velocities(Sim.V_dis[:,-1], Sim.V_d[:,-1], Sim.V_c[:,-1], Sim.N_j, Sim.Set.T, calc_balance=True)
+    u_dis, u_c, u_d = Sim.velocities(Sim.V_dis[:,-1], Sim.V_c[:,-1], Sim.V_d[:,-1], Sim.N_j, Sim.Set.T, calc_balance=True)
     u = max(u_dis, u_d, u_c)
     return u * Sim.Set.dt / Sim.Set.dl
 
-# Input data
-data = np.array([
-    [0.05, 240, 180, 0.036],
-    [0.05, 240, 200, 0.023],
-    [0.05, 240, 250, 0.004],
-    [0.05, 280, 180, 0.028],
-    [0.05, 280, 200, 0.008],
-    [0.05, 280, 250, 0.002],
-    [0.1, 200, 180, 0.038],
-    [0.1, 240, 180, 0.03],
-    [0.1, 280, 180, 0.03],
-    [0.2, 160, 180, 0.040],
-    [0.2, 160, 200, 0.023],
-    [0.2, 160, 250, 0.003],
-    [0.2, 200, 180, 0.021],
-    [0.2, 200, 200, 0.035],
-    [0.2, 200, 250, 0.009],
-    [0.2, 240, 180, -0.151],
-    [0.2, 240, 200, 0.041],
-    [0.2, 240, 250, 0.011],
-    [0.2, 280, 180, -0.221],
-    [0.2, 280, 200, 0.006],
-    [0.2, 280, 250, 0.012],
-    [0.3, 750, 205, 0.040],
-    [0.3, 1000, 250, 6e-3],
-    [0.3, 1250, 275, 0.0115],
-    [0.4, 750, 225, 8.5e-3],
-])
-
-# Separate inputs and output
-eps_0 = data[:, 0]
-dV_ges = data[:, 1]
-phi_0 = data[:, 2]
-delta = data[:, 3]
-
-# Stack inputs as points
-points = np.column_stack((eps_0, dV_ges, phi_0))
-interp_lin = LinearNDInterpolator(points, delta)
-interp_nearest = NearestNDInterpolator(points, delta)
-
-
-def E_interpolator(x):
-    val = interp_lin(x)
-    if np.isnan(val):
-        return interp_nearest(x)  # Fallback extrapolation
-    return val
-
-# Example queries
-# E_interpolator([0.2, 240, 205])

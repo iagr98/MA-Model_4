@@ -43,7 +43,7 @@ class input_simulation:
         self.factor = 0
         self.status = 0
         self.h_dpz = []
-        self.h_d = []
+        self.h_c = []
 
     def initial_conditions(self, N_D=10):
 
@@ -51,14 +51,14 @@ class input_simulation:
         N_x = self.Set.N_x
         R = self.Set.D / 2
         h_dis_0 = self.Set.h_dis_0
-        h_d_0 = self.Set.h_d_0
-        self.u_0 = (self.Sub.dV_ges / (np.pi * self.Set.D**2 / 4))
+        h_c_0 = self.Set.h_c_0
+        self.u_0 = (self.Sub.dV_ges / (self.Set.A))
 
         # Einführung der Tropfenanzahl und Tropfendurchmesser
         hold_up_calc, n_in, d_in, N_in_total = fun.initialize_boundary_conditions(self.Sub.eps_0, self.Sub.phi_0, 2.5*self.Sub.phi_0 , 'Output', N_D, plot=False)
 
         # Berechnungen von Querschnittsflächen
-        h_c_0 = 2 * R - h_d_0 - h_dis_0
+        h_d_0 = 2 * R - h_c_0 - h_dis_0
         A_d_0 = hf.getArea(h_d_0, R)
         A_c_0 = hf.getArea(h_c_0, R)
         A_dis_0 = self.Set.A - A_d_0 - A_c_0
@@ -72,7 +72,7 @@ class input_simulation:
         phi32_0 = self.Sub.phi_0 * np.ones(N_x)
 
         # Anfangsbedingung für N_j
-        factor = (self.Sub.eps_0*Vd_0[0])/((np.pi/6)*np.sum(n_in*d_in**3))
+        factor = (self.Sub.eps_0*Vc_0[0])/((np.pi/6)*np.sum(n_in*d_in**3)) ################################# check
         N_j_0 = (factor*np.round(n_in,decimals=0)).tolist()
         # print('B factor= ', factor)
         # print('Total volume of droplets [m^3] =',(np.pi/6)*np.sum(n_in*d_in**3))
@@ -84,7 +84,7 @@ class input_simulation:
             N_j_0[i] = N_j_0[i] * np.ones(N_x)
 
 
-        self.y0 = np.concatenate([Vdis_0, Vd_0, Vc_0, phi32_0, np.concatenate(N_j_0)])  # Array als Anfangsbedingung
+        self.y0 = np.concatenate([Vdis_0, Vc_0, Vd_0, phi32_0, np.concatenate(N_j_0)])  # Array als Anfangsbedingung
 
     def getInitialConditions(self, old_Sim):
         self.d_j = old_Sim.d_j
@@ -94,7 +94,7 @@ class input_simulation:
         V_c0 = old_Sim.V_c[:,-1]
         phi_320 = old_Sim.phi_32[:,-1]
         N_j_0 = [old_Sim.N_j[j][:, -1] for j in range(N_d)]
-        self.y0 = np.concatenate([V_dis0, V_d0, V_c0, phi_320, np.concatenate(N_j_0)])
+        self.y0 = np.concatenate([V_dis0, V_c0, V_d0, phi_320, np.concatenate(N_j_0)])
 
     # merged 2 simulationsobjekte sodass diese hintereinander geplottet werden können
     def mergeSims(self, Sim1, Sim2):
@@ -130,7 +130,7 @@ class input_simulation:
 
         return tau
 
-    def henschke_input(self, V_dis, V_d, V_c, phi_32, sigma, r_s_star):
+    def henschke_input(self, V_dis, V_c, V_d, phi_32, sigma, r_s_star):
 
         D = self.Set.D
         dl = self.Set.dl
@@ -146,8 +146,8 @@ class input_simulation:
             if V_dis[i] > 0:
                 h_c = hf.getHeight(V_c[i] / dl, D / 2)
                 h_d = hf.getHeight(V_d[i] / dl, D / 2)
-                Ay = 2 * dl * (2 * (D / 2) * h_c - h_c**2) ** 0.5
-                h_dis = max(D - h_d - h_c , 0.0001)
+                Ay = 2 * dl * (2 * (D / 2) * h_d - h_d**2) ** 0.5
+                h_dis = max(D - h_c - h_d , 0.0001)
                 tau_di = self.tau(h_dis, phi_32[i], "I", sigma[i], r_s_star[i])
                 tau_dd[i] = self.tau(h_dis, phi_32[i], "d", sigma[i], r_s_star[i])
                 if (tau_di > 0):
@@ -160,7 +160,7 @@ class input_simulation:
 
         return dV, tau_dd
 
-    def velocities(self, V_dis, V_d, V_c, N_j, t, calc_balance=False):
+    def velocities(self, V_dis, V_c, V_d, N_j, t, calc_balance=False):
 
         dl = self.Set.dl
         dt = self.Set.dt
@@ -169,7 +169,7 @@ class input_simulation:
         D = self.Set.D
         u_0 = (self.Sub.dV_ges / (np.pi * self.Set.D**2 / 4))
         self.u_0 = u_0
-        A_A = np.pi * (self.Set.D**2 / 4)
+        A_A = self.Set.A
         # u_dis = np.linspace(u_0,0,len(V_dis))                           # Option 1 (Triangle)
         u_dis = u_0 * (1 - np.linspace(0, 1, len(V_dis))**2.2)            # Option 2 (Parabola) u_dis''<0
         # u_dis = u_0 * (np.linspace(1, 0, len(V_dis))**2)                # Option 3 (Parabola) u_dis''>0
@@ -184,24 +184,19 @@ class input_simulation:
         A_c = V_c / dl
         if (calc_balance):
             N_j = np.array(N_j)
-            eps_d = np.sum(N_j[:,:,-1] * (d_j[:, np.newaxis]**3) * (np.pi/6), axis=0) / V_d
+            eps_c = np.sum(N_j[:,:,-1] * (d_j[:, np.newaxis]**3) * (np.pi/6), axis=0) / V_c
         else:
-            eps_d = np.sum(N_j * (d_j[:, np.newaxis]**3) * (np.pi/6), axis=0) / V_d
+            eps_c = np.sum(N_j * (d_j[:, np.newaxis]**3) * (np.pi/6), axis=0) / V_c
         u_d = u_0 * np.ones(len(V_dis))
         u_c = u_0 * np.ones(len(V_dis))
 
 
         if not hasattr(self, "_last_velocities"):
             self._last_velocities = {}
-        # if not hasattr(self, 'last_triggered'):
-        #     self.last_triggered = -1
-
-        # if ((t % (5*dt) < 0.5 and t > T/3 and int(t//(5*dt)) != self.last_triggered) or t==0):
-        #     self.last_triggered = int(t//(5*dt))
         if (t==0):
             for i in range(len(V_dis)):
-                u_d[i] = (u_0*A_A*(eps_0-1)+u_dis[i]*A_dis[i]*(1-eps_p))/(A_d[i]*(eps_d[i]-1))
-                u_c[i] = (u_0 * A_A - u_dis[i] * A_dis[i] - u_d[i] * A_d[i]) / A_c[i]
+                u_c[i] = (u_0*A_A*(eps_0-1)+u_dis[i]*A_dis[i]*(1-eps_p))/(A_c[i]*(eps_c[i]-1))
+                u_d[i] = (u_0*A_A - u_dis[i]*A_dis[i] - u_c[i]*A_c[i]) / A_d[i]
             self._last_velocities['u_dis'] = u_dis
             self._last_velocities['u_d'] = u_d
             self._last_velocities['u_c'] = u_c
@@ -210,74 +205,74 @@ class input_simulation:
             self.u_c.append(u_c)
         else:
             u_dis = self._last_velocities.get('u_dis', np.zeros_like(V_dis))
-            u_d   = self._last_velocities.get('u_d',   np.zeros_like(V_d))
             u_c   = self._last_velocities.get('u_c',   np.zeros_like(V_c))
+            u_d   = self._last_velocities.get('u_d',   np.zeros_like(V_d))
             self.u_dis.append(u_dis)
             self.u_c.append(u_c)
             self.u_d.append(u_d)
 
         if (calc_balance):
             u_dis = u_dis[-1]
-            u_d = (u_0*A_A*(eps_0-1)+u_dis*A_dis[-1]*(1-eps_p))/(A_d[-1]*(eps_d[-1]-1))
-            u_c = (u_0 * A_A - u_dis * A_dis[-1] - u_d * A_d[-1]) / A_c[-1]
+            u_c = (u_0*A_A*(eps_0-1)+u_dis*A_dis[-1]*(1-eps_p))/(A_c[-1]*(eps_c[-1]-1))
+            u_d = (u_0 * A_A - u_dis * A_dis[-1] - u_c * A_c[-1]) / A_d[-1]
             
             
 
-        return u_dis, u_d, u_c
+        return u_dis, u_c, u_d
     
-    def swarm_sedimenation_velocity(self, V_d, N_j):
+    def swarm_sedimenation_velocity(self, V_c, N_j):
         d_j = self.d_j
-        v_sed = np.zeros((len(d_j), len(V_d)))
-        eps = np.zeros(len(V_d))
-        for i in range (len(V_d)): 
-            if (V_d[i] > 0):
-                eps[i] = np.sum(N_j[:,i] * (d_j**3) * (np.pi/6)) / V_d[i]
+        v_sed = np.zeros((len(d_j), len(V_c)))
+        eps = np.zeros(len(V_c))
+        for i in range (len(V_c)): 
+            if (V_c[i] > 0):
+                eps[i] = np.sum(N_j[:,i] * (d_j**3) * (np.pi/6)) / V_c[i]
             else:
                 eps[i] = self.Sub.eps_0
             for j in range(len(d_j)):
                 v_sed[j][i] = ((self.Sub.g * self.Sub.delta_rho / (18 * self.Sub.eta_c))* (d_j[j] ** 2)* (1 - eps[i]))
         return v_sed
 
-    def sedimentation_rate(self, V_d, N_j):
+    def sedimentation_rate(self, V_c, N_j):
         d_j = self.d_j
         D = self.Set.D
         dl = self.Set.dl
-        V_s = np.zeros(len(V_d))
-        v_sed = self.swarm_sedimenation_velocity(V_d ,N_j)
-        h_d = np.ones(len(V_d))
+        V_s = np.zeros(len(V_c))
+        v_sed = self.swarm_sedimenation_velocity(V_c ,N_j)
+        h_c = np.ones(len(V_c))
         for i in range(len(V_s)):
-            if (V_d[i]>0):
-                h_d[i] = hf.getHeight(V_d[i] / dl, D / 2)
-                V_s[i] = np.sum((N_j[:,i] * v_sed[:,i] / h_d[i]) * (np.pi/6) * d_j**3)
+            if (V_c[i]>0):
+                h_c[i] = hf.getHeight(V_c[i] / dl, D / 2)
+                V_s[i] = np.sum((N_j[:,i] * v_sed[:,i] / h_c[i]) * (np.pi/6) * d_j**3)
             else:
-                h_d[i] = h_d[i-1]
+                h_c[i] = h_c[i-1]
         return V_s
     
-    def source_term_32(self, V_dis, V_d, phi_32, N_j):
+    def source_term_32(self, V_dis, V_c, phi_32, N_j):
         D = self.Set.D
         dl = self.Set.dl
         d_j = self.d_j
         S32=np.zeros(len(V_dis))
-        v_sed = self.swarm_sedimenation_velocity(V_d ,N_j)
-        h_d = np.ones(len(V_d))
+        v_sed = self.swarm_sedimenation_velocity(V_c ,N_j)
+        h_c = np.ones(len(V_c))
         for i in range(len(V_dis)):
-            if (V_dis[i]>0 and V_d[i]>0):
-                h_d[i] = hf.getHeight(V_d[i] / dl, D / 2)
-                S32[i] = ((np.pi/6) * phi_32[i] / (V_dis[i] * self.Sub.eps_p)) * np.sum(N_j[:,i] * v_sed[:,i] * d_j**2 * (d_j - phi_32[i]) / h_d[i])
+            if (V_dis[i]>0 and V_c[i]>0):
+                h_c[i] = hf.getHeight(V_c[i] / dl, D / 2)
+                S32[i] = ((np.pi/6) * phi_32[i] / (V_dis[i] * self.Sub.eps_p)) * np.sum(N_j[:,i] * v_sed[:,i] * d_j**2 * (d_j - phi_32[i]) / h_c[i])
             else:
                 S32[i] = 0
         return S32
     
-    def h_d_array(self, V_d):
+    def h_c_array(self, V_c):
         D = self.Set.D
         dl = self.Set.dl
-        h_d_arr = np.zeros_like(V_d)
-        for i in range(len(V_d)):
-            if (V_d[i] > 0):
-                h_d_arr[i] = hf.getHeight(V_d[i] / dl, D / 2)
+        h_c_arr = np.zeros_like(V_c)
+        for i in range(len(V_c)):
+            if (V_c[i] > 0):
+                h_c_arr[i] = hf.getHeight(V_c[i] / dl, D / 2)
             else:
-                h_d_arr[i] = h_d_arr[i-1]
-        return h_d_arr
+                h_c_arr[i] = h_c_arr[i-1]
+        return h_c_arr
     
     
     def simulate_ivp(self, atol=1e-6):
@@ -311,32 +306,32 @@ class input_simulation:
         def fun(t, y):
 
             V_dis = y[: N_x]
-            V_d = y[N_x : 2*N_x]
-            V_c = y[2*N_x : 3*N_x]
+            V_c = y[N_x : 2*N_x]
+            V_d = y[2*N_x : 3*N_x]
             phi_32 = y[3*N_x : 4*N_x]
             for j in range (N_d):
                 N_j[j,:] = y[(j+4)*N_x : (j+5)*N_x]
 
 
-            dV, tau_dd = self.henschke_input(V_dis, V_d, V_c, phi_32, sigma, r_s_star)
-            h_d = self.h_d_array(V_d)
-            u_dis, u_d, _ = self.velocities(V_dis, V_d, V_c, N_j, t)
+            dV, tau_dd = self.henschke_input(V_dis, V_c, V_d, phi_32, sigma, r_s_star)
+            h_c = self.h_c_array(V_c)
+            u_dis, u_c, _ = self.velocities(V_dis, V_c, V_d, N_j, t)
             
 
             # Volume balance and sauter mean diameter equations
-            dVdis_dt = (u_dis / dl) * (np.roll(V_dis,1) - V_dis) + (V_dis / dl) * (np.roll(u_dis, 1) - u_dis) + (1 / eps_p) * self.sedimentation_rate(V_d, N_j) - dV
-            dVd_dt = (u_d / dl) * (np.roll(V_d,1) - V_d) + (V_d / dl) * (np.roll(u_d, 1) - u_d) - (1 / eps_p) * self.sedimentation_rate(V_d, N_j) + (1 - eps_p) * dV
-            dphi32_dt = (u_dis / dl) * (np.roll(phi_32,1) - phi_32) + (phi_32 / dl) * (np.roll(u_dis, 1) - u_dis) + (phi_32 / (6 * tau_dd)) + self.source_term_32(V_dis, V_d, phi_32, N_j)
-            dVc_dt = -dVdis_dt - dVd_dt
+            dVdis_dt = (u_dis / dl) * (np.roll(V_dis,1) - V_dis) + (V_dis / dl) * (np.roll(u_dis, 1) - u_dis) + (1 / eps_p) * self.sedimentation_rate(V_c, N_j) - dV
+            dVc_dt = (u_c / dl) * (np.roll(V_c,1) - V_c) + (V_c / dl) * (np.roll(u_c, 1) - u_c) - (1 / eps_p) * self.sedimentation_rate(V_c, N_j) + (1 - eps_p) * dV
+            dphi32_dt = (u_dis / dl) * (np.roll(phi_32,1) - phi_32) + (phi_32 / dl) * (np.roll(u_dis, 1) - u_dis) + (phi_32 / (6 * tau_dd)) + self.source_term_32(V_dis, V_c, phi_32, N_j)
+            dVd_dt = -dVdis_dt - dVc_dt
 
             # Population balances
             for j in range(N_d):
-                dN_j_dt[j,:] = (u_d / dl) * (np.roll(N_j[j,:],1) - N_j[j,:]) + (N_j[j,:] / dl) * (np.roll(u_d, 1) - u_d) - N_j[j,:] * self.swarm_sedimenation_velocity(V_d, N_j)[j,:] / h_d
+                dN_j_dt[j,:] = (u_c / dl) * (np.roll(N_j[j,:],1) - N_j[j,:]) + (N_j[j,:] / dl) * (np.roll(u_c, 1) - u_c) - N_j[j,:] * self.swarm_sedimenation_velocity(V_c, N_j)[j,:] / h_c
                 # dN_j_dt[j,:] = (u_d / dl) * (np.roll(N_j[j,:],1) - N_j[j,:]) - N_j[j,:] * self.swarm_sedimenation_velocity(V_d, N_j)[j,:] / h_d
 
             dVdis_dt[0] = 0
-            dVd_dt[0] = 0
             dVc_dt[0] = 0
+            dVd_dt[0] = 0
             dphi32_dt[0] = 0
             for j in range(N_d):
                 dN_j_dt[j,0] = 0
@@ -349,7 +344,7 @@ class input_simulation:
             # print(t)
 
 
-            return np.concatenate([dVdis_dt, dVd_dt, dVc_dt, dphi32_dt, dN_j_dt.flatten()])
+            return np.concatenate([dVdis_dt, dVc_dt, dVd_dt, dphi32_dt, dN_j_dt.flatten()])
         
 
         # Lösung des GDGL-Systems
@@ -360,15 +355,15 @@ class input_simulation:
 
         y = self.sol.y
         self.V_dis = y[0 : N_x]
-        self.V_d = y[N_x : 2*N_x]
-        self.V_c = y[2*N_x : 3*N_x]
+        self.V_c = y[N_x : 2*N_x]
+        self.V_d = y[2*N_x : 3*N_x]
         self.phi_32 = y[3*N_x : 4*N_x]
         self.N_j = [y[(j+4)*N_x : (j+5)*N_x] for j in range(N_d)]
         self.Set.t = self.sol.t
 
         end_time = time.time()
 
-        # Berechnung  der Extraktionseffizienz
+        # Berechnung  der Trenneffizienz
         V_end = 0
         V_0 = 0
         for j in range(N_d):
@@ -376,37 +371,22 @@ class input_simulation:
             V_0 += (np.pi/6)*(self.d_j[j]**3)*self.N_j[j][0][0]
         self.E = 1 - (V_end/V_0)
 
-        if (self.Sub.phi_0 < 300*1e-6):
-            delta_E = hf.E_interpolator(([self.Sub.eps_0, self.Sub.dV_ges*3.6*1e6, self.Sub.phi_0*1e6]))
-            self.E = min(self.E + delta_E, 1)
-        H = getHeightArray(self.V_d[:,-1] / dl, D/2)
-
-        # print('\nSimulation ended successfully after: ', round(end_time-start_time,1), "s", "\nu_dis = u_d = ", u_dis[0], "[m/s]","\nExtraction efficiency",round(100*E,3), " %", "\nHeight of heavy phase: ", H[-1])
-        # print('\nN_j(x=0,t=0)= ', N_0,'\nN_j(x=L, t_end)= ', N_end)
-
-        h_d = getHeightArray(self.V_d[:, len(self.Set.t) - 1]/self.Set.dl, self.Set.D/2)
-        h_d_dis = getHeightArray((self.V_d[:, len(self.Set.t) - 1] + self.V_dis[:, len(self.Set.t) - 1])/self.Set.dl, self.Set.D/2)
-        h_dis = max(h_d_dis) - min(h_d)
+        h_c = getHeightArray(self.V_c[:, len(self.Set.t) - 1]/self.Set.dl, self.Set.D/2)
+        h_c_dis = getHeightArray((self.V_c[:, len(self.Set.t) - 1] + self.V_dis[:, len(self.Set.t) - 1])/self.Set.dl, self.Set.D/2)
+        h_dis = max(h_c_dis) - min(h_c)
         self.H_DPZ = h_dis
         self.factor = self.H_DPZ / self.Set.h_dis_0
-        # print('Height of the DPZ at the end of the simulation: ', 1000 * h_dis , ' mm')
-        a = np.where(np.abs(h_d_dis - h_d) < 1e-3)[0][0] if np.any(np.abs(h_d_dis - h_d) < 1e-3) else -1
+        a = np.where(np.abs(h_c_dis - h_c) < 1e-3)[0][0] if np.any(np.abs(h_c_dis - h_c) < 1e-3) else -1
         self.L_DPZ = a * self.Set.dl
-        # print('Length of the DPZ at the end of the simulation: ', 1000 * a * self.Set.dl, ' mm')
-        # self.V_dis_total = np.sum(self.V_dis[:,-1])
-        self.h_dpz = h_d_dis
-        self.h_d = h_d
+        self.h_dpz = h_c_dis
+        self.h_c = h_c
 
         self.V_dis_total = np.sum(self.V_dis[:,-1])
         self.vol_balance = hf.calculate_volume_balance(self)
-        print('dV_ges=', self.Sub.dV_ges, '. phi_32,0=', self.Sub.phi_0, '. Hold-up=',self.Sub.eps_0, '. V_dis=', self.V_dis_total,'. Sep. Efficiency: ',self.E, '. Volume imbalance=', self.vol_balance,'%')
+        print('dV_ges[L/h]: ', 3.6*1e6*self.Sub.dV_ges, '-u_0[mm/s]: ',1e3*self.u_0, ', phi_32,0 [um]=', 1e6*self.Sub.phi_0, ', Hold-up=',self.Sub.eps_0,', Sep. Eff.: ',self.E, ', Volume imbalance=', self.vol_balance,'%')
         print('factor: ', self.factor)
         print('')
 
-
-        # print('dV_ges= ', self.Sub.dV_ges, 'phi_32,0= ', self.Sub.phi_0, 'V_dis= ', self.V_dis_total)
-        # print('')
-    
     def plot_solution(self, N_i, N_t, ID):
 
         N_d = len(self.d_j)
@@ -415,26 +395,6 @@ class input_simulation:
         D = self.Set.D
         x = self.Set.x
         N_x = self.Set.N_x
-
-        # Funktion zur Bestimmung des Gleichgewichtzistand
-        
-        # def steady_state_det(v):
-        #     for i in range(len(v)):
-        #         if ((np.mean(abs(abs(v[i:]) - abs(np.mean(v[i:]))))) < 1e-3 * max(v)):
-        #             b = i
-        #             break
-        #     return b
-
-        #Berechnung der Höhe 
-
-        # b_dis = steady_state_det(self.V_dis[:,t_w])
-        # b_d = steady_state_det(self.V_d[:,t_w])
-        # b_c = steady_state_det(self.V_c[:,t_w])
-        # b = max(b_dis, b_c, b_d)
-        # A_dis = self.V_dis[0:b, t_w] / dl
-        # A_d = self.V_d[0:b, t_w] / dl
-        # A_c = self.V_c[0:b, t_w] / dl
-        
         A_d = self.V_d[:, N_t] / dl
         A_c = self.V_c[:, N_t] / dl
         h_d = np.zeros(len(A_d))
@@ -618,41 +578,37 @@ class input_simulation:
                 V_tot = V_dis + V_d + V_c
 
                 if light_in_heavy:
-                    ax.plot(x, 1000 * (D - getHeightArray(V_c[:, 0] / dl, D / 2)), color='r', linestyle=':',
+                    ax.plot(x, 1000 * (getHeightArray(V_c[:, 0] / dl, D / 2)), color='blue', linestyle=':',
                                  label='Interface c, dis; t = 0')
-                    ax.plot(x, 1000 * getHeightArray(V_d[:, 0] / dl, D / 2), color='g', linestyle=':',
+                    ax.plot(x, 1000 * (D - getHeightArray(V_d[:, 0] / dl, D / 2)), color='goldenrod', linestyle=':',
                                  label='Interface dis, d; t = 0')
-
-                    ax.plot(x, 1000 * (D - getHeightArray(V_c[:, len(t) - 1] / dl, D / 2)), color='r',
+                    ax.plot(x, 1000 * (getHeightArray(V_c[:, len(t) - 1] / dl, D / 2)), color='blue',
                                  linestyle='--',
                                  label='Interface c, dis; t = {:.2f}'.format(t[len(t) - 1]))
-                    ax.plot(x, 1000 * getHeightArray(V_d[:, len(t) - 1] / dl, D / 2), color='g',
+                    ax.plot(x, 1000 * (D - getHeightArray(V_d[:, len(t) - 1] / dl, D / 2)), color='goldenrod',
                                  linestyle='--',
                                  label='Interface dis, d; t = {:.2f}'.format(t[len(t) - 1]))
-
-                    ax.plot(x, 1000 * (D - getHeightArray(V_c[:, frame] / dl, D / 2)), color='r',
+                    ax.plot(x, 1000 * (getHeightArray(V_c[:, frame] / dl, D / 2)), color='blue',
                                  label='Interface c, dis')
-                    ax.plot(x, 1000 * getHeightArray(V_d[:, frame] / dl, D / 2), color='g',
+                    ax.plot(x, 1000 * (D - getHeightArray(V_d[:, frame] / dl, D / 2)), color='goldenrod',
                                  label='Interface dis, d')  
                 else:
-                    ax.plot(x, 1000 * getHeightArray(V_d[:, 0] / dl, D / 2), color='r', linestyle=':',
+                    ax.plot(x, 1000 * getHeightArray(V_d[:, 0] / dl, D / 2), color='goldenrod', linestyle=':',
                                  label='Interface d, dis; t = 0')
-                    ax.plot(x, 1000 * ( D - getHeightArray(V_c[:, 0] / dl, D / 2)), color='g', linestyle=':',
+                    ax.plot(x, 1000 * ( D - getHeightArray(V_c[:, 0] / dl, D / 2)), color='blue', linestyle=':',
                                  label='Interface dis, c; t = 0')
-
-                    ax.plot(x, 1000 * getHeightArray(V_d[:, len(t) - 2] / dl, D / 2), color='r',
+                    ax.plot(x, 1000 * getHeightArray(V_d[:, len(t) - 2] / dl, D / 2), color='goldenrod',
                                  linestyle='--',
                                  label='Interface d, dis; t = {:.2f}'.format(t[len(t) - 2]))
-                    ax.plot(x, 1000 * ( D - getHeightArray(V_c[:, len(t) - 2] / dl, D / 2)), color='g',
+                    ax.plot(x, 1000 * ( D - getHeightArray(V_c[:, len(t) - 2] / dl, D / 2)), color='blue',
                                  linestyle='--',
                                  label='Interface dis, c; t = {:.2f}'.format(t[len(t) - 2]))
-
-                    ax.plot(x, 1000 * getHeightArray(V_d[:, frame] / dl, D / 2), color='r',
+                    ax.plot(x, 1000 * getHeightArray(V_d[:, frame] / dl, D / 2), color='goldenrod',
                                  label='Interface d, dis')
-                    ax.plot(x, 1000 * ( D - getHeightArray(V_c[:, frame] / dl, D / 2)), color='g',
+                    ax.plot(x, 1000 * ( D - getHeightArray(V_c[:, frame] / dl, D / 2)), color='blue',
                                  label='Interface dis, c')
 
-                ax.plot(x, 1000 * getHeightArray(V_tot[:, frame] / dl, D / 2), color='b', label='h_tot')
+                ax.plot(x, 1000 * getHeightArray(V_tot[:, frame] / dl, D / 2), color='k', label='h_tot')
 
                 ax.set_xlabel('x in mm')
                 ax.set_ylabel('Height in mm')
