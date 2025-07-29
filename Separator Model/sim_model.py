@@ -40,7 +40,6 @@ class input_simulation:
         self.eps = []
         self.E = 0
         self.cfl = 0
-        self.factor = 0
         self.status = 0
         self.condition_2 = False
         self.dpz_flooded = False
@@ -360,6 +359,7 @@ class input_simulation:
         self.sol = solve_ivp(fun, (0, self.Set.T), self.y0, method='RK45', rtol=r_tol, atol=a_tol, events=event, t_eval=self.Set.t)
         print(self.sol.message, ' at t= ', self.sol.t[-1], 's')
         self.status = self.sol.status
+        self.dpz_flooded = True if (self.status==-1 or self.condition_2) else False
 
         y = self.sol.y
         self.V_dis = y[0 : N_x]
@@ -377,6 +377,7 @@ class input_simulation:
             indices = np.where((V_c_end+V_dis_end)>=V_tot)  
             V_d_end[indices[0][0]:] = 1e-12
             self.V_dis[indices[0][0]:,len(self.Set.t)-1] = V_tot - V_c_end[indices[0][0]:]
+        
 
 
         end_time = time.time()
@@ -393,7 +394,6 @@ class input_simulation:
         h_c_dis = getHeightArray((self.V_c[:, len(self.Set.t) - 1] + self.V_dis[:, len(self.Set.t) - 1])/self.Set.dl, self.Set.D/2)
         h_dis = max(h_c_dis) - min(h_c)
         self.H_DPZ = h_dis
-        self.factor = self.H_DPZ / self.Set.h_dis_0
         a = np.where(np.abs(h_c_dis - h_c) < 1e-3)[0][0] if np.any(np.abs(h_c_dis - h_c) < 1e-3) else -1
         self.L_DPZ = a * self.Set.dl
         self.h_dpz = h_c_dis
@@ -401,8 +401,8 @@ class input_simulation:
 
         self.V_dis_total = np.sum(self.V_dis[:,-1])
         self.vol_balance = hf.calculate_volume_balance(self)
-        print('dV_ges[L/h]: ', 3.6*1e6*self.Sub.dV_ges, '-u_0[mm/s]: ',1e3*self.u_0, ', phi_32,0 [um]=', 1e6*self.Sub.phi_0, ', Hold-up=',self.Sub.eps_0,', Sep. Eff.: ',self.E, ', Volume imbalance=', self.vol_balance,'%')
-        print('factor: ', self.factor)
+        print('dV_ges[L/h]: ', 3.6*1e6*self.Sub.dV_ges, '- u_0[mm/s]: ',1e3*self.u_0, ', phi_32,0 [um]=', 1e6*self.Sub.phi_0, ', Hold-up=',self.Sub.eps_0,', Sep. Eff.: ',self.E, ', Volume imbalance=', self.vol_balance,'%')
+        print('dpz_flooed: ', self.dpz_flooded)
         print('')
 
     def plot_solution(self, N_i, N_t, ID):

@@ -16,7 +16,7 @@ def init_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, N_x):
         "niba_V3.xlsx" if exp == "niba3" else \
         "niba_V4.xlsx" if exp == "niba4" else None
     elif(exp == "2mmol_21C" or exp == "2mmol_30C" or exp == "5mmol_30C" or exp == "10mmol_21C" or exp == "10mmol_30C" or exp == "15mmol_20C" or exp == "15mmol_30C"):
-        h_dis_0 = min(h_dis_0, 0.05)
+        h_dis_0 = min(h_dis_0, 0.05) if (h_dis_0!=0) else 0.05
         Set = sp.Settings(N_x=N_x, L=1.3, D=0.2, h_c_0=h_c_0, h_dis_0=h_dis_0)
         filename = "2mmolNa2CO3_21C.xlsx" if exp == "2mmol_21C" else \
         "2mmolNa2CO3_30C.xlsx" if exp == "2mmol_30C" else \
@@ -40,23 +40,12 @@ def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.5, h_c_0=0.1, h_dis_0=0.
     Sim = init_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, N_x)
     Sim.initial_conditions(N_D)
     Sim.simulate_ivp(atol=a_tol)
-    # if (exp == "2mmol_21C" or exp == "2mmol_30C" or exp == "5mmol_30C" or exp == "10mmol_21C" or exp == "10mmol_30C" or exp == "15mmol_20C" or exp == "15mmol_30C"):
-    #     if (Sim.status == 1):
-    #         h_dis_0 = h_dis_0 / Sim.factor
-    #         Sim = init_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, N_x)
-    #         Sim.initial_conditions(N_D)
-    #         Sim.simulate_ivp(atol=a_tol)
-    #     else:
-    #         print("No simulation coupling due to DPZ flooding")
     return Sim
 
 
 if __name__ == "__main__":
 
-    # filename = "Paraffin_flut_20C.xlsx"
-    # filename = "niba_V2.xlsx"
-
-    test = 6
+    test = 24
     sheet = 'detail_V_dis'
     data = pd.read_excel("Input/data_main.xlsx", sheet_name=sheet)
     exp = data['exp'][test]
@@ -68,7 +57,7 @@ if __name__ == "__main__":
         h_dis_0 = []
     else:
         h_c_0 = data['h_c_0'][test]
-        h_dis_0 = data['h_dis_max'][test]
+        h_dis_0 = data['h_dis_0'][test]
     print('Simulation inputs: exp={}, phi_0[um]={}, dV_ges[L/h]={}, eps_0={}'.format(exp, 1e6*phi_0, dV_ges, eps_0))
 
     Sim = run_sim(exp=exp, phi_0=phi_0, dV_ges=dV_ges, eps_0=eps_0, h_c_0=h_c_0, h_dis_0=h_dis_0)
