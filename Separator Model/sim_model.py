@@ -52,7 +52,7 @@ class input_simulation:
         dl = self.Set.dl
         N_x = self.Set.N_x
         R = self.Set.D / 2
-        h_dis_0 = self.Set.h_dis_0
+        h_dis_0 = np.linspace(self.Set.h_dis_0, 0.1*self.Set.h_dis_0, N_x)
         h_c_0 = self.Set.h_c_0
         self.u_0 = (self.Sub.dV_ges / (self.Set.A))
 
@@ -64,10 +64,16 @@ class input_simulation:
         A_d_0 = hf.getArea(h_d_0, R)
         A_c_0 = hf.getArea(h_c_0, R)
         A_dis_0 = self.Set.A - A_d_0 - A_c_0
-
+        # print('h_dis: ', h_dis_0)
+        # print('h_d_0',h_d_0)
+        # print('h_c_0', h_c_0)
+        # print('A_d_0', A_d_0)
+        # print('A_c_0', A_c_0)
+        # print('A_dis_0',A_dis_0)
+        
         # Anfangsbedingungen für Volumina
-        Vdis_0 = A_dis_0 * dl * np.ones(N_x)
-        Vd_0 = A_d_0 * dl * np.ones(N_x)
+        Vdis_0 = A_dis_0 * dl
+        Vd_0 = A_d_0 * dl
         Vc_0 = A_c_0 * dl * np.ones(N_x)
 
         # Anfangsbedingung für phi_32
@@ -306,8 +312,7 @@ class input_simulation:
             V_c = y[N_x:2*N_x]
             V_tot = A*dl
             condition_1 = np.min(V_dis) < 0 # (Boolean) Simulation stops if V_dis (DPZ) dissapears
-            self.indices = np.where((V_c+V_dis)>=V_tot)   
-            self.condition_2 = np.any(np.diff(self.indices) > 1) # (Boolean) Simulation stops if DPZ is not flooded at the end of separator
+            self.condition_2 = np.any((V_c+V_dis)>=V_tot)   # (Boolean) Simulation stops if DPZ is flooded at any point of separator
             return 0 if (condition_1 or self.condition_2) else 1
         event.terminal = True   
 
@@ -369,18 +374,7 @@ class input_simulation:
         self.phi_32 = y[3*N_x : 4*N_x]
         self.N_j = [y[(j+4)*N_x : (j+5)*N_x] for j in range(N_d)]
         self.Set.t = self.sol.t
-
-        if (self.condition_2):      # For correct plotting of DPZ as flooded
-            V_tot = A*dl
-            V_d_end = self.V_d[:,len(self.Set.t)-1]
-            V_dis_end = self.V_dis[:,len(self.Set.t)-1]
-            V_c_end = self.V_c[:,len(self.Set.t)-1]
-            # indices = np.where((V_c_end+V_dis_end)>=0.99*V_tot)  
-            V_d_end[self.indices[0][0]:] = 1e-12
-            self.V_dis[self.indices[0][0]:,len(self.Set.t)-1] = V_tot - V_c_end[self.indices[0][0]:]
         
-
-
         end_time = time.time()
 
         # Berechnung  der Trenneffizienz
