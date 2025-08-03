@@ -6,9 +6,9 @@ import helper_functions as hf
 from sim_run import run_sim
 import csv
 
-N_CPU = 5
+N_CPU = 6
 
-tests = [9,3,8,46,53]
+tests = [10, 8, 12, 60, 24, 14]
 experiment = "detail_V_dis" # "main" if ye + niba tests, "sozh" tests from AVT.FVT
 
 df = pd.read_excel("Input/data_main.xlsx", sheet_name=experiment)

@@ -45,14 +45,13 @@ class input_simulation:
         self.dpz_flooded = False
         self.h_dpz = []
         self.h_c = []
-        self.indices = []
 
     def initial_conditions(self, N_D=10):
 
         dl = self.Set.dl
         N_x = self.Set.N_x
         R = self.Set.D / 2
-        h_dis_0 = np.linspace(self.Set.h_dis_0, 0.1*self.Set.h_dis_0, N_x)
+        h_dis_0 = 0.001#*self.Set.h_dis_0
         h_c_0 = self.Set.h_c_0
         self.u_0 = (self.Sub.dV_ges / (self.Set.A))
 
@@ -72,8 +71,8 @@ class input_simulation:
         # print('A_dis_0',A_dis_0)
         
         # Anfangsbedingungen für Volumina
-        Vdis_0 = A_dis_0 * dl
-        Vd_0 = A_d_0 * dl
+        Vdis_0 = A_dis_0 * dl * np.ones(N_x)
+        Vd_0 = A_d_0 * dl * np.ones(N_x)
         Vc_0 = A_c_0 * dl * np.ones(N_x)
 
         # Anfangsbedingung für phi_32
@@ -179,7 +178,7 @@ class input_simulation:
         self.u_0 = u_0
         A_A = self.Set.A
         # u_dis = np.linspace(u_0,0,len(V_dis))                           # Option 1 (Triangle)
-        u_dis = u_0 * (1 - np.linspace(0, 1, len(V_dis))**2.2)            # Option 2 (Parabola) u_dis''<0
+        u_dis = u_0 * (1 - np.linspace(0, 1, len(V_dis))**5.8)            # Option 2 (Parabola) u_dis''<0
         # u_dis = u_0 * (np.linspace(1, 0, len(V_dis))**2)                # Option 3 (Parabola) u_dis''>0
         # u_dis = u_0 * np.cos(np.linspace(0, np.pi/2, self.Set.N_x))     # Option 4 (Cosinus) u_dis''<0
         u_dis[-1] = 0
@@ -397,7 +396,7 @@ class input_simulation:
         self.V_dis_total = np.sum(self.V_dis[:,-1])
         self.vol_balance = hf.calculate_volume_balance(self)
         print('dV_ges[L/h]: ', 3.6*1e6*self.Sub.dV_ges, '- u_0[mm/s]: ',1e3*self.u_0, ', phi_32,0 [um]=', 1e6*self.Sub.phi_0, ', Hold-up=',self.Sub.eps_0,', Sep. Eff.: ',self.E, ', Volume imbalance=', self.vol_balance,'%')
-        print('dpz_flooed: ', self.dpz_flooded)
+        print('dpz_flooed: ', self.dpz_flooded, 'V_dis_total[m3]: ', self.V_dis_total)
         print('')
 
     def plot_solution(self, N_i, N_t, ID):

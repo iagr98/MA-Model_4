@@ -37,8 +37,8 @@ def parallel_simulation(params):
         elif(experiment == "sozh" or experiment == "detail_V_dis"):
             Sim = run_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0)
             result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0,
-                'h_d_0': h_c_0, 'h_dis_0': h_dis_0, 'sim_status':Sim.status,
-                'Sep. Eff.': Sim.E,'Vol_imbalance [%]': hf.calculate_volume_balance(Sim), 'status': 'success'}  
+                'h_d_0': h_c_0, 'h_dis_0': h_dis_0, 'sim_status':Sim.status, 'dpz_flooded': Sim.dpz_flooded, 'u_0':Sim.u_0,
+                'V_dis_total': Sim.V_dis_total, 'Sep. Eff.': Sim.E,'Vol_imbalance [%]': hf.calculate_volume_balance(Sim), 'status': 'success'}  
             
         # Expand h_d and h_dpz arrays into separate columns
         for i, val in enumerate(Sim.h_c):
@@ -71,7 +71,7 @@ if __name__ == "__main__":
         parameters = [(exp[i], phi_0[i], dV_ges[i], eps_0[i], h_c_0[i], h_dis_0[i]) for i in range(len(exp))]
         
     n = 201  # Adjust to expected max length of h_d and h_dpz
-    base_fields = ['exp', 'phi_0', 'dV_ges', 'eps_0', 'h_c_0', 'h_dis_0', 'sim_status', 'Sep. Eff.', 'Vol_imbalance [%]', 'status']
+    base_fields = ['exp', 'phi_0', 'dV_ges', 'eps_0', 'h_c_0', 'h_dis_0', 'sim_status', 'dpz_flooded', 'u_0', 'V_dis_total', 'Sep. Eff.', 'Vol_imbalance [%]', 'status']
     h_d_fields = [f'h_c_{i}' for i in range(1,n)]
     h_dpz_fields = [f'h_dpz_{i}' for i in range(n)]
     all_fields = base_fields + h_d_fields + h_dpz_fields

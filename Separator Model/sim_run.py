@@ -45,7 +45,7 @@ def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.5, h_c_0=0.1, h_dis_0=0.
 
 if __name__ == "__main__":
 
-    test = 34
+    test = 82
     sheet = 'detail_V_dis'
     data = pd.read_excel("Input/data_main.xlsx", sheet_name=sheet)
     exp = data['exp'][test]
@@ -61,7 +61,6 @@ if __name__ == "__main__":
     print('Simulation inputs: exp={}, phi_0[um]={}, dV_ges[L/h]={}, eps_0={}'.format(exp, 1e6*phi_0, dV_ges, eps_0))
 
     Sim = run_sim(exp=exp, phi_0=phi_0, dV_ges=dV_ges, eps_0=eps_0, h_c_0=h_c_0, h_dis_0=h_dis_0)
-    plt.plot(Sim.h_dpz)
 
     # Animationen
 
