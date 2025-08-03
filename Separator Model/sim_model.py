@@ -52,7 +52,7 @@ class input_simulation:
         N_x = self.Set.N_x
         R = self.Set.D / 2
         h_dis_0 = 0.001#*self.Set.h_dis_0
-        h_c_0 = self.Set.h_c_0
+        h_c_0 = self.Set.h_c_0 + self.Set.h_dis_0
         self.u_0 = (self.Sub.dV_ges / (self.Set.A))
 
         # Einführung der Tropfenanzahl und Tropfendurchmesser
@@ -178,7 +178,7 @@ class input_simulation:
         self.u_0 = u_0
         A_A = self.Set.A
         # u_dis = np.linspace(u_0,0,len(V_dis))                           # Option 1 (Triangle)
-        u_dis = u_0 * (1 - np.linspace(0, 1, len(V_dis))**5.8)            # Option 2 (Parabola) u_dis''<0
+        u_dis = u_0 * (1 - np.linspace(0, 1, len(V_dis))**2.9)            # Option 2 (Parabola) u_dis''<0
         # u_dis = u_0 * (np.linspace(1, 0, len(V_dis))**2)                # Option 3 (Parabola) u_dis''>0
         # u_dis = u_0 * np.cos(np.linspace(0, np.pi/2, self.Set.N_x))     # Option 4 (Cosinus) u_dis''<0
         u_dis[-1] = 0
