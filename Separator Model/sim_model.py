@@ -45,6 +45,7 @@ class input_simulation:
         self.dpz_flooded = False
         self.h_dpz = []
         self.h_c = []
+        self.N_D = 0
 
     def initial_conditions(self, N_D=10):
 
@@ -54,6 +55,8 @@ class input_simulation:
         h_dis_0 = 0.001#*self.Set.h_dis_0
         h_c_0 = self.Set.h_c_0 + self.Set.h_dis_0
         self.u_0 = (self.Sub.dV_ges / (self.Set.A))
+        self.N_D = N_D
+
 
         # Einführung der Tropfenanzahl und Tropfendurchmesser
         hold_up_calc, n_in, d_in, N_in_total = fun.initialize_boundary_conditions(self.Sub.eps_0, self.Sub.phi_0, 2.5*self.Sub.phi_0 , 'Output', N_D, plot=False)

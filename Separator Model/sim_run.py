@@ -25,6 +25,9 @@ def init_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, N_x):
         "10mmolNa2CO3_30C.xlsx" if exp == "10mmol_30C" else \
         "15mmolNa2CO3_20C.xlsx" if exp == "15mmol_20C" else \
         "15mmolNa2CO3_30C.xlsx" if exp == "15mmol_30C" else None
+    elif(exp == 'in_silico'):
+        Set = sp.Settings(N_x=N_x, L=1.3, D=0.2, h_c_0=0.1, h_dis_0=0.03)
+        filename = "in_silico_substance.xlsx"
     else:
         print('Test does not belong to either Ye Niba or sozh. D=0.3 m, L=1.0 m and substance data from Butylacetat taken')
         filename = "Butylacetat_1_5_144.xlsx"
@@ -46,18 +49,24 @@ def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.5, h_c_0=0.1, h_dis_0=0.
 if __name__ == "__main__":
 
     test = 12
-    sheet = 'detail_V_dis'
-    data = pd.read_excel("Input/data_main.xlsx", sheet_name=sheet)
-    exp = data['exp'][test]
+    sheet = 'Sheet1'
+    data = pd.read_excel("Input/in_silico_dataset.xlsx", sheet_name=sheet)
+    exp = "in_silico"
     phi_0 = data['phi_0'][test]
     dV_ges = data['dV_ges'][test]
     eps_0 = data['eps_0'][test]
-    if (exp=='ye' or exp=='niba'):
-        h_c_0 = []
-        h_dis_0 = []
-    else:
-        h_c_0 = data['h_c_0'][test]
-        h_dis_0 = data['h_dis_0'][test]
+    h_c_0 = []
+    h_dis_0 = []
+    # exp = data['exp'][test]
+    # phi_0 = data['phi_0'][test]
+    # dV_ges = data['dV_ges'][test]
+    # eps_0 = data['eps_0'][test]
+    # if (exp=='ye' or exp=='niba'):
+    #     h_c_0 = []
+    #     h_dis_0 = []
+    # else:
+    #     h_c_0 = data['h_c_0'][test]
+    #     h_dis_0 = data['h_dis_0'][test]
     print('Simulation inputs: exp={}, phi_0[um]={}, dV_ges[L/h]={}, eps_0={}'.format(exp, 1e6*phi_0, dV_ges, eps_0))
 
     Sim = run_sim(exp=exp, phi_0=phi_0, dV_ges=dV_ges, eps_0=eps_0, h_c_0=h_c_0, h_dis_0=h_dis_0)
