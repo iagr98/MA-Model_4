@@ -29,6 +29,7 @@ def parallel_simulation(params):
             'V_dis_total': Sim.V_dis_total, 'Sep. Eff.': Sim.E,
             'V_c':",".join(map(str,(Sim.V_c[:,-1]))), 'V_dis':",".join(map(str,(Sim.V_dis[:,-1]))),
             'V_d':",".join(map(str,(Sim.V_d[:,-1]))), 'phi_32':",".join(map(str,(Sim.phi_32[:,-1]))),
+            'x':",".join(map(str,Sim.Set.x)),
             'Vol_imbalance [%]': hf.calculate_volume_balance(Sim), 'status': 'success'}  
         for j in range(N_D):
             result[f'N_{j}'] = ",".join(map(str, Sim.N_j[j][:,-1]))
@@ -51,7 +52,7 @@ if __name__ == "__main__":
     parameters = [(phi_0[i], dV_ges[i], eps_0[i]) for i in range(len(phi_0))]
         
     base_fields = ['exp', 'phi_0', 'dV_ges', 'eps_0', 'sim_status', 'dpz_flooded', 'u_0', 'V_dis_total', 'Sep. Eff.',
-               'V_c', 'V_dis', 'V_d', 'phi_32', 'Vol_imbalance [%]', 'status']
+               'V_c', 'V_dis', 'V_d', 'phi_32', 'x', 'Vol_imbalance [%]', 'status']
     base_fields += [f'N_{j}' for j in range(N_D)]
     with open('simulation_results_parallel_in_silico.csv', mode='w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=base_fields)
