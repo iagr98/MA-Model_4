@@ -48,7 +48,7 @@ def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.5, h_c_0=0.1, h_dis_0=0.
 
 if __name__ == "__main__":
 
-    test = 12
+    test = 0
     sheet = 'Sheet1'
     data = pd.read_excel("Input/in_silico_dataset.xlsx", sheet_name=sheet)
     exp = "in_silico"
