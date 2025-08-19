@@ -54,6 +54,7 @@ class input_simulation:
         R = self.Set.D / 2
         h_dis_0 = 0.001#*self.Set.h_dis_0
         h_c_0 = self.Set.h_c_0 + self.Set.h_dis_0
+        # h_c_0 = np.linspace(self.Set.h_c_0 + self.Set.h_dis_0, self.Set.h_c_0, N_x)
         self.u_0 = (self.Sub.dV_ges / (self.Set.A))
         self.N_D = N_D
 
@@ -159,14 +160,14 @@ class input_simulation:
                 Ay = 2 * dl * (2 * (D / 2) * h_d - h_d**2) ** 0.5
                 h_dis = max(D - h_c - h_d , 0.0001)
                 tau_di = self.tau(h_dis, phi_32[i], "I", sigma[i], r_s_star[i])
-                tau_dd[i] = self.tau(h_dis, phi_32[i], "d", sigma[i], r_s_star[i])
+                tau_dd[i] = self.tau(self.Sub.h_p_star*h_dis, phi_32[i], "d", sigma[i], r_s_star[i])
                 if (tau_di > 0):
                     dV[i] = 2 * Ay * phi_32[i] / (3 * tau_di * self.Sub.eps_p)
-                else:
-                    #dV[i] = 2 * Ay * phi_32[i] / (3 * 9e9 * self.Sub.eps_p)
-                    dV[i] = 0
-                if (tau_dd[i]==0):
-                    tau_dd[i] = 9e9
+                # else:
+                #     #dV[i] = 2 * Ay * phi_32[i] / (3 * 9e9 * self.Sub.eps_p)
+                #     dV[i] = 0
+                # if (tau_dd[i]==0):
+                #     tau_dd[i] = 9e9
 
         return dV, tau_dd
 
@@ -180,8 +181,9 @@ class input_simulation:
         u_0 = (self.Sub.dV_ges / (np.pi * self.Set.D**2 / 4))
         self.u_0 = u_0
         A_A = self.Set.A
+        exponent = self.Set.exponent
         # u_dis = np.linspace(u_0,0,len(V_dis))                           # Option 1 (Triangle)
-        u_dis = u_0 * (1 - np.linspace(0, 1, len(V_dis))**2.9)            # Option 2 (Parabola) u_dis''<0
+        u_dis = u_0 * (1 - np.linspace(0, 1, len(V_dis))**exponent)            # Option 2 (Parabola) u_dis''<0
         # u_dis = u_0 * (np.linspace(1, 0, len(V_dis))**2)                # Option 3 (Parabola) u_dis''>0
         # u_dis = u_0 * np.cos(np.linspace(0, np.pi/2, self.Set.N_x))     # Option 4 (Cosinus) u_dis''<0
         u_dis[-1] = 0
