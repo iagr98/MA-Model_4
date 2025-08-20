@@ -48,7 +48,7 @@ def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.5, h_c_0=0.1, h_dis_0=0.
 
 if __name__ == "__main__":
 
-    test = 9
+    test = 176
     sheet = 'sozh'
     data = pd.read_excel("Input/data_main.xlsx", sheet_name=sheet)
     # exp = "in_silico"
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         h_c_0 = data['h_c_0'][test]
         h_dis_0 = data['h_dis_0'][test]
 
-    exponent = 2
+    exponent = 3
     print('Simulation inputs: exp={}, phi_0[um]={}, dV_ges[L/h]={}, eps_0={}, exponent={}'.format(exp, 1e6*phi_0, dV_ges, eps_0, exponent))
 
     Sim = run_sim(exp=exp, phi_0=phi_0, dV_ges=dV_ges, eps_0=eps_0, h_c_0=h_c_0, h_dis_0=h_dis_0, exponent=exponent)

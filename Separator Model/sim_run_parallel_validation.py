@@ -21,10 +21,10 @@ if (experiment == "sozh" or experiment == "detail_V_dis"):
     h_c_0 = df['h_c_0'].tolist()
     h_dis_0 = df['h_dis_0'].tolist()
 
-exponent = 1.5
+# exponent = 1.5
 
 def parallel_simulation(params):
-    exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0 = params
+    exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, exponent = params
     print(f"Start simulation with exp={exp}, phi_0={phi_0}, dV_ges={dV_ges}, eps_0={eps_0}, h_d_0={h_c_0}, h_dis_0={h_dis_0}")
     try:
         Sim = run_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, exponent=exponent)
@@ -55,7 +55,8 @@ def parallel_simulation(params):
         return error_result
 
 if __name__ == "__main__":
-    parameters = [(exp[i], phi_0[i], dV_ges[i], eps_0[i], h_c_0[i], h_dis_0[i]) for i in range(len(exp))]
+    exponent = 1.5
+    parameters = [(exp[i], phi_0[i], dV_ges[i], eps_0[i], h_c_0[i], h_dis_0[i], exponent) for i in range(len(exp))]
         
     # n = 201  # Adjust to expected max length of h_d and h_dpz
     # base_fields = ['exp', 'phi_0', 'dV_ges', 'eps_0', 'h_c_0', 'h_dis_0','sim_status', 'dpz_flooded', 'Sep. Eff.', 'Vol_imbalance [%]', 'status']
