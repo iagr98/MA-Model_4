@@ -27,11 +27,17 @@ def parallel_simulation(params):
     exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, exponent = params
     print(f"Start simulation with exp={exp}, phi_0={phi_0}, dV_ges={dV_ges}, eps_0={eps_0}, h_d_0={h_c_0}, h_dis_0={h_dis_0}")
     try:
-        Sim = run_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, exponent=exponent)
-        result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0,
-            'h_c_0': h_c_0, 'h_dis_0': h_dis_0,'sim_status':Sim.status,
-            'dpz_flooded': Sim.dpz_flooded, 'Sep. Eff.': Sim.E,
-            'Vol_imbalance [%]': hf.calculate_volume_balance(Sim), 'status': 'success'}  
+        if (exp=='ye'):
+            Sim = run_sim(exp, phi_0, dV_ges, eps_0, exponent=exponent)
+            result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0,
+                'dpz_flooded': Sim.dpz_flooded, 'Sep. Eff.': Sim.E,
+                'Vol_imbalance [%]': hf.calculate_volume_balance(Sim), 'status': 'success'} 
+        else:
+            Sim = run_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, exponent=exponent)
+            result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0,
+                'h_c_0': h_c_0, 'h_dis_0': h_dis_0,'sim_status':Sim.status,
+                'dpz_flooded': Sim.dpz_flooded, 'Sep. Eff.': Sim.E,
+                'Vol_imbalance [%]': hf.calculate_volume_balance(Sim), 'status': 'success'}  
             
         # Expand h_c and h_dpz arrays into separate columns
         # for i, val in enumerate(Sim.h_c):
@@ -45,9 +51,14 @@ def parallel_simulation(params):
         #     writer.writerow(result)
         return result 
     except Exception as e:
-        print(f"Simulation failed for exp={exp}, phi_0={phi_0}, dV_ges={dV_ges}, eps_0={eps_0}, h_c_0={h_c_0}, h_dis_0={h_dis_0}: {str(e)}")
-        error_result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0, 'h_c_0': h_c_0,
-                         'h_dis_0': h_dis_0,'sim_status':Sim.status, 'error': str(e), 'status': 'failed'}
+        if (exp=='ye'):
+            print(f"Simulation failed for exp={exp}, phi_0={phi_0}, dV_ges={dV_ges}, eps_0={eps_0}: {str(e)}")
+            error_result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0,
+                            'sim_status':Sim.status, 'error': str(e), 'status': 'failed'}
+        else:
+            print(f"Simulation failed for exp={exp}, phi_0={phi_0}, dV_ges={dV_ges}, eps_0={eps_0}, h_c_0={h_c_0}, h_dis_0={h_dis_0}: {str(e)}")
+            error_result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0, 'h_c_0': h_c_0,
+                            'h_dis_0': h_dis_0,'sim_status':Sim.status, 'error': str(e), 'status': 'failed'}
 
         # with open('simulation_results_parallel_validation.csv', mode='a', newline='') as file:
         #     writer = csv.DictWriter(file, fieldnames=error_result.keys())
