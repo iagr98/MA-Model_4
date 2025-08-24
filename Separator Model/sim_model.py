@@ -393,15 +393,16 @@ class input_simulation:
         h_c_dis = getHeightArray((self.V_c[:, len(self.Set.t) - 1] + self.V_dis[:, len(self.Set.t) - 1])/self.Set.dl, self.Set.D/2)
         h_dis = max(h_c_dis) - min(h_c)
         self.H_DPZ = h_dis
-        a = np.where(np.abs(h_c_dis - h_c) < 1e-3)[0][0] if np.any(np.abs(h_c_dis - h_c) < 1e-3) else -1
-        self.L_DPZ = a * self.Set.dl
+        # a = np.where(np.abs(h_c_dis - h_c) < 1e-3)[0][0] if np.any(np.abs(h_c_dis - h_c) < 1e-3) else -1 
+        a = -1 if self.condition_2 else np.argmin(self.V_dis[:, -1])
+        self.L_DPZ = self.Set.x[a]
         self.h_dpz = h_c_dis
         self.h_c = h_c
 
         self.V_dis_total = np.sum(self.V_dis[:,-1])
         self.vol_balance = hf.calculate_volume_balance(self)
         print('dV_ges[L/h]: ', 3.6*1e6*self.Sub.dV_ges, '- u_0[mm/s]: ',1e3*self.u_0, ', phi_32,0 [um]=', 1e6*self.Sub.phi_0, ', Hold-up=',self.Sub.eps_0,', Sep. Eff.: ',self.E, ', Volume imbalance=', self.vol_balance,'%')
-        print('dpz_flooed: ', self.dpz_flooded, 'V_dis_total[m3]: ', self.V_dis_total)
+        print('dpz_flooed: ', self.dpz_flooded, 'L_DPZ[m]: ', self.L_DPZ)
         print('')
 
     def plot_solution(self, N_i, N_t, ID):

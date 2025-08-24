@@ -6,38 +6,27 @@ import helper_functions as hf
 from sim_run import run_sim
 import csv
 
-N_CPU = 6
-
-tests = [10, 8, 12, 60, 24, 14]
-experiment = "detail_V_dis" # "main" if ye + niba tests, "sozh" tests from AVT.FVT
-
-df = pd.read_excel("Input/data_main.xlsx", sheet_name=experiment)
-df = df.iloc[tests]
-exp = df['exp'].tolist()
-phi_0 = df['phi_0'].tolist()
-dV_ges = df['dV_ges'].tolist()
-eps_0 = df['eps_0'].tolist()
-if (experiment == "sozh" or experiment == "detail_V_dis"):
-    h_c_0 = df['h_c_0'].tolist()
-    h_dis_0 = df['h_dis_0'].tolist()
-
-# exponent = 1.5
 
 def parallel_simulation(params):
-    exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, exponent = params
-    print(f"Start simulation with exp={exp}, phi_0={phi_0}, dV_ges={dV_ges}, eps_0={eps_0}, h_d_0={h_c_0}, h_dis_0={h_dis_0}")
+    # ye
+    exp, phi_0, dV_ges, eps_0, exponent = params
+    print(f"Start simulation with exp={exp}, phi_0={phi_0}, dV_ges={dV_ges}, eps_0={eps_0}")
+    # sz
+    # exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, exponent = params
+    # print(f"Start simulation with exp={exp}, phi_0={phi_0}, dV_ges={dV_ges}, eps_0={eps_0}, h_d_0={h_c_0}, h_dis_0={h_dis_0}")
     try:
-        if (exp=='ye'):
-            Sim = run_sim(exp, phi_0, dV_ges, eps_0, exponent=exponent)
-            result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0,
-                'dpz_flooded': Sim.dpz_flooded, 'Sep. Eff.': Sim.E,
+        # ye
+        Sim = run_sim(exp, phi_0, dV_ges, eps_0, exponent=exponent)
+        result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0,
+                'dpz_flooded': Sim.dpz_flooded, 'Sep. Eff.': Sim.E, 'L_DPZ':Sim.L_DPZ,
                 'Vol_imbalance [%]': hf.calculate_volume_balance(Sim), 'status': 'success'} 
-        else:
-            Sim = run_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, exponent=exponent)
-            result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0,
-                'h_c_0': h_c_0, 'h_dis_0': h_dis_0,'sim_status':Sim.status,
-                'dpz_flooded': Sim.dpz_flooded, 'Sep. Eff.': Sim.E,
-                'Vol_imbalance [%]': hf.calculate_volume_balance(Sim), 'status': 'success'}  
+
+        # sz
+        # Sim = run_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, exponent=exponent)
+        # result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0,
+        #         'h_c_0': h_c_0, 'h_dis_0': h_dis_0,'sim_status':Sim.status,
+        #         'dpz_flooded': Sim.dpz_flooded, 'Sep. Eff.': Sim.E,
+        #         'Vol_imbalance [%]': hf.calculate_volume_balance(Sim), 'status': 'success'}  
             
         # Expand h_c and h_dpz arrays into separate columns
         # for i, val in enumerate(Sim.h_c):
@@ -51,14 +40,15 @@ def parallel_simulation(params):
         #     writer.writerow(result)
         return result 
     except Exception as e:
-        if (exp=='ye'):
-            print(f"Simulation failed for exp={exp}, phi_0={phi_0}, dV_ges={dV_ges}, eps_0={eps_0}: {str(e)}")
-            error_result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0,
-                            'sim_status':Sim.status, 'error': str(e), 'status': 'failed'}
-        else:
-            print(f"Simulation failed for exp={exp}, phi_0={phi_0}, dV_ges={dV_ges}, eps_0={eps_0}, h_c_0={h_c_0}, h_dis_0={h_dis_0}: {str(e)}")
-            error_result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0, 'h_c_0': h_c_0,
-                            'h_dis_0': h_dis_0,'sim_status':Sim.status, 'error': str(e), 'status': 'failed'}
+        # ye
+        print(f"Simulation failed for exp={exp}, phi_0={phi_0}, dV_ges={dV_ges}, eps_0={eps_0}: {str(e)}")
+        error_result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0,
+                        'sim_status':Sim.status, 'error': str(e), 'status': 'failed'}
+
+        # sz
+        # print(f"Simulation failed for exp={exp}, phi_0={phi_0}, dV_ges={dV_ges}, eps_0={eps_0}, h_c_0={h_c_0}, h_dis_0={h_dis_0}: {str(e)}")
+        # error_result = {'exp': exp, 'phi_0': phi_0, 'dV_ges': dV_ges, 'eps_0': eps_0, 'h_c_0': h_c_0,
+        #                 'h_dis_0': h_dis_0,'sim_status':Sim.status, 'error': str(e), 'status': 'failed'}
 
         # with open('simulation_results_parallel_validation.csv', mode='a', newline='') as file:
         #     writer = csv.DictWriter(file, fieldnames=error_result.keys())
@@ -66,7 +56,24 @@ def parallel_simulation(params):
         return error_result
 
 if __name__ == "__main__":
+    
     exponent = 1.5
+    N_CPU = 6
+
+    tests = [10, 8, 12, 60, 24, 14]
+    experiment = "detail_V_dis" # "main" if ye + niba tests, "sozh" tests from AVT.FVT
+
+    df = pd.read_excel("Input/data_main.xlsx", sheet_name=experiment)
+    df = df.iloc[tests]
+    exp = df['exp'].tolist()
+    phi_0 = df['phi_0'].tolist()
+    dV_ges = df['dV_ges'].tolist()
+    eps_0 = df['eps_0'].tolist()
+    if (experiment == "sozh" or experiment == "detail_V_dis"):
+        h_c_0 = df['h_c_0'].tolist()
+        h_dis_0 = df['h_dis_0'].tolist()
+
+
     parameters = [(exp[i], phi_0[i], dV_ges[i], eps_0[i], h_c_0[i], h_dis_0[i], exponent) for i in range(len(exp))]
         
     # n = 201  # Adjust to expected max length of h_d and h_dpz
