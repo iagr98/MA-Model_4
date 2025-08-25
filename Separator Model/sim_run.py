@@ -39,7 +39,30 @@ def init_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, N_x, exponent):
     SubSys.eps_0 = eps_0
     return sim.input_simulation(Set, SubSys)
 
-def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.5, h_c_0=0.1, h_dis_0=0.05, N_D=20, N_x=201, a_tol=1e-6, exponent=2):
+def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.5, h_c_0=0.1, h_dis_0=0.05, N_D=20, N_x=201, a_tol=1e-6):
+    if (exp=='2mmol_21C'):
+        exponent = 1.75
+    elif(exp=='2mmol_30C'):
+        exponent = 10
+    elif(exp=='5mmol_30C'):
+        exponent = 10
+    elif(exp=='10mmol_21C' or exp=='10mmol_30C'):
+        exponent = 1.75
+    elif(exp=='15mmol_20C'):
+        exponent = 1.84
+    elif(exp=='15mmol_30C'):
+        exponent = 2.6
+    elif(exp=='ye' and dV_ges==160):
+        exponent = 4.5
+    elif(exp=='ye' and dV_ges==200):
+        exponent = 5.4
+    elif(exp=='ye' and dV_ges==240):
+        exponent = 6.25
+    elif(exp=='ye' and dV_ges==280):
+        exponent = 5.4
+    else:
+        exponent = 1.75
+    print(exponent)
     Sim = init_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, N_x, exponent)
     Sim.initial_conditions(N_D)
     Sim.simulate_ivp(atol=a_tol)
