@@ -11,7 +11,7 @@ N_CPU = 8
 # experiment = "detail_V_dis" # "main" if ye + niba tests, "sozh" tests from AVT.FVT
 # df = pd.read_excel("Input/data_main.xlsx", sheet_name=experiment)
 experiment = 'testing_validation'
-df = pd.read_csv('Input/df_te_dpz.csv')
+df = pd.read_csv('Input/df_te_lam.csv')
 exp = df['exp'].tolist()
 phi_0 = df['phi_0'].tolist()
 dV_ges = df['dV_ges'].tolist()
@@ -89,5 +89,5 @@ if __name__ == "__main__":
     # h_dpz_columns.columns = [f'h_dpz_{i}' for i in range(h_dpz_columns.shape[1])]
     # df_results = df_results.drop(columns=['h_dpz'])
     # df_results = pd.concat([df_results, h_dpz_columns], axis=1)  # Concatenate V_dis columns with the main result dataframe
-    df_results.to_csv('simulation_results_te_dpz.csv', index=False)
+    df_results.to_csv('simulation_results_te_lam.csv', index=False)
     print("Alle Simulationen abgeschlossen. Ergebnisse gespeichert.")
