@@ -1,5 +1,5 @@
 import numpy as np
-import fun
+from DSD_utils import fun
 import helper_functions as hf
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
@@ -138,7 +138,6 @@ class input_simulation:
         else:
             rf = d_32 * 0.5239 * (1 - (4.7 / (4.7 + La_mod))) ** 0.5
         tau = (7.68* self.Sub.eta_c* (ra ** (7 / 3)/ (self.Sub.H_cd ** (1 / 6) * sigma ** (5 / 6) * rf * r_s_star)))
-
         return tau
 
     def henschke_input(self, V_dis, V_c, V_d, phi_32, sigma, r_s_star):
@@ -153,7 +152,6 @@ class input_simulation:
         for i in range(len(V_dis)):
             if phi_32[i] <= 0:
                 phi_32[i] = self.Sub.phi_0 / 10
-
             if V_dis[i] > 0:
                 h_c = hf.getHeight(V_c[i] / dl, D / 2)
                 h_d = hf.getHeight(V_d[i] / dl, D / 2)
@@ -163,16 +161,9 @@ class input_simulation:
                 tau_dd[i] = self.tau(self.Sub.h_p_star*h_dis, phi_32[i], "d", sigma[i], r_s_star[i])
                 if (tau_di > 0):
                     dV[i] = 2 * Ay * phi_32[i] / (3 * tau_di * self.Sub.eps_p)
-                # else:
-                #     #dV[i] = 2 * Ay * phi_32[i] / (3 * 9e9 * self.Sub.eps_p)
-                #     dV[i] = 0
-                # if (tau_dd[i]==0):
-                #     tau_dd[i] = 9e9
-
         return dV, tau_dd
 
     def velocities(self, V_dis, V_c, V_d, N_j, t, calc_balance=False):
-
         dl = self.Set.dl
         dt = self.Set.dt
         eps_0 = self.Sub.eps_0
@@ -182,13 +173,8 @@ class input_simulation:
         self.u_0 = u_0
         A_A = self.Set.A
         exponent = self.Set.exponent
-        # u_dis = np.linspace(u_0,0,len(V_dis))                           # Option 1 (Triangle)
-        u_dis = u_0 * (1 - np.linspace(0, 1, len(V_dis))**exponent)            # Option 2 (Parabola) u_dis''<0
-        # u_dis = u_0 * (np.linspace(1, 0, len(V_dis))**2)                # Option 3 (Parabola) u_dis''>0
-        # u_dis = u_0 * np.cos(np.linspace(0, np.pi/2, self.Set.N_x))     # Option 4 (Cosinus) u_dis''<0
+        u_dis = u_0 * (1 - np.linspace(0, 1, len(V_dis))**exponent)     # Modeling of the convective velocity at DPZ as exponent-order polynomial
         u_dis[-1] = 0
-        
-
         d_j = self.d_j
         T = self.Set.T
         A_dis = V_dis / dl
@@ -201,8 +187,6 @@ class input_simulation:
             eps_c = np.sum(N_j * (d_j[:, np.newaxis]**3) * (np.pi/6), axis=0) / V_c
         u_d = u_0 * np.ones(len(V_dis))
         u_c = u_0 * np.ones(len(V_dis))
-
-
         if not hasattr(self, "_last_velocities"):
             self._last_velocities = {}
         if (t==0):
@@ -222,14 +206,10 @@ class input_simulation:
             self.u_dis.append(u_dis)
             self.u_c.append(u_c)
             self.u_d.append(u_d)
-
         if (calc_balance):
             u_dis = u_dis[-1]
             u_c = (u_0*A_A*(eps_0-1)+u_dis*A_dis[-1]*(1-eps_p))/(A_c[-1]*(eps_c[-1]-1))
             u_d = (u_0 * A_A - u_dis * A_dis[-1] - u_c * A_c[-1]) / A_d[-1]
-            
-            
-
         return u_dis, u_c, u_d
     
     def swarm_sedimenation_velocity(self, V_c, N_j):
@@ -301,16 +281,12 @@ class input_simulation:
         N_j = np.zeros((N_d, N_x))
         dN_j_dt = np.zeros((N_d, N_x))
 
-        a_tol = np.concatenate([atol*np.ones(N_x),               # V_dis
-                               atol*np.ones(N_x),               # V_d
-                               atol*np.ones(N_x),               # V_c
-                               atol*np.ones(N_x),               # phi_32
+        a_tol = np.concatenate([atol*np.ones(N_x),             # V_dis
+                               atol*np.ones(N_x),              # V_d
+                               atol*np.ones(N_x),              # V_c
+                               atol*np.ones(N_x),              # phi_32
                                (10^2)*atol*np.ones(N_x*N_d)])  # N_j
-        
         r_tol = atol*1e3
-        
-
-
         def event(t, y):
             V_dis = y[:N_x]
             V_c = y[N_x:2*N_x]
@@ -344,7 +320,6 @@ class input_simulation:
             # Population balances
             for j in range(N_d):
                 dN_j_dt[j,:] = (u_c / dl) * (np.roll(N_j[j,:],1) - N_j[j,:]) + (N_j[j,:] / dl) * (np.roll(u_c, 1) - u_c) - N_j[j,:] * self.swarm_sedimenation_velocity(V_c, N_j)[j,:] / h_c
-                # dN_j_dt[j,:] = (u_d / dl) * (np.roll(N_j[j,:],1) - N_j[j,:]) - N_j[j,:] * self.swarm_sedimenation_velocity(V_d, N_j)[j,:] / h_d
 
             dVdis_dt[0] = 0
             dVc_dt[0] = 0
@@ -358,18 +333,15 @@ class input_simulation:
             self.phi_32_term_3.append((phi_32 / (6 * tau_dd)))
             self.phi_32_term_4.append(self.source_term_32(V_dis, V_d, phi_32, N_j))
 
-            # print(t)
-
-
             return np.concatenate([dVdis_dt, dVc_dt, dVd_dt, dphi32_dt, dN_j_dt.flatten()])
         
 
-        # Lösung des GDGL-Systems
+        # Solving ODE-System
 
         self.sol = solve_ivp(fun, (0, self.Set.T), self.y0, method='RK45', rtol=r_tol, atol=a_tol, events=event, t_eval=self.Set.t)
         print(self.sol.message, ' at t= ', self.sol.t[-1], 's')
         self.status = self.sol.status
-        self.dpz_flooded = True if (self.status==-1 or self.condition_2) else False
+        self.dpz_flooded = True if (self.status==-1 or self.condition_2) else False # DPZ is flooded if solve_ivp cannot find steady state or if event-condition 2 triggered
 
         y = self.sol.y
         self.V_dis = y[0 : N_x]
@@ -393,12 +365,10 @@ class input_simulation:
         h_c_dis = getHeightArray((self.V_c[:, len(self.Set.t) - 1] + self.V_dis[:, len(self.Set.t) - 1])/self.Set.dl, self.Set.D/2)
         h_dis = max(h_c_dis) - min(h_c)
         self.H_DPZ = h_dis
-        # a = np.where(np.abs(h_c_dis - h_c) < 1e-3)[0][0] if np.any(np.abs(h_c_dis - h_c) < 1e-3) else -1 
         a = -1 if self.condition_2 else np.argmin(self.V_dis[:, -1])
         self.L_DPZ = self.Set.x[a]
         self.h_dpz = h_c_dis
         self.h_c = h_c
-
         self.V_dis_total = np.sum(self.V_dis[:,-1])
         self.vol_balance = hf.calculate_volume_balance(self)
         print('dV_ges[L/h]: ', 3.6*1e6*self.Sub.dV_ges, '- u_0[mm/s]: ',1e3*self.u_0, ', phi_32,0 [um]=', 1e6*self.Sub.phi_0, ', Hold-up=',self.Sub.eps_0,', Sep. Eff.: ',self.E, ', Volume imbalance=', self.vol_balance,'%')

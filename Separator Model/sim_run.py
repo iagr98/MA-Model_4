@@ -40,6 +40,7 @@ def init_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, N_x, exponent):
     return sim.input_simulation(Set, SubSys)
 
 def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.5, h_c_0=0.1, h_dis_0=0.05, N_D=20, N_x=201, a_tol=1e-6):
+    # After validaton, following are the determined exponents of the convective velocities "alpha".
     if (exp=='2mmol_21C'):
         exponent = 1.75
     elif(exp=='2mmol_30C'):
@@ -62,7 +63,7 @@ def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.5, h_c_0=0.1, h_dis_0=0.
         exponent = 5.4
     else:
         exponent = 1.75
-    print(exponent)
+        print('Convective velocity not validated')
     Sim = init_sim(exp, phi_0, dV_ges, eps_0, h_c_0, h_dis_0, N_x, exponent)
     Sim.initial_conditions(N_D)
     Sim.simulate_ivp(atol=a_tol)
@@ -70,16 +71,10 @@ def run_sim(exp="ye", phi_0=610e-6, dV_ges=240, eps_0=0.5, h_c_0=0.1, h_dis_0=0.
 
 
 if __name__ == "__main__":
-
+    # Read inputs from the specified excel file from the Input folder
     test = 36
     sheet = 'main'
     data = pd.read_excel("Input/data_main.xlsx", sheet_name=sheet)
-    # exp = "in_silico"
-    # phi_0 = data['phi_0'][test]
-    # dV_ges = data['dV_ges'][test]
-    # eps_0 = data['eps_0'][test]
-    # h_c_0 = []
-    # h_dis_0 = []
     exp = data['exp'][test]
     phi_0 = data['phi_0'][test]
     dV_ges = data['dV_ges'][test]
@@ -90,11 +85,8 @@ if __name__ == "__main__":
     else:
         h_c_0 = data['h_c_0'][test]
         h_dis_0 = data['h_dis_0'][test]
-
-    exponent = 6.25
-    print('Simulation inputs: exp={}, phi_0[um]={}, dV_ges[L/h]={}, eps_0={}, exponent={}'.format(exp, 1e6*phi_0, dV_ges, eps_0, exponent))
-
-    Sim = run_sim(exp=exp, phi_0=phi_0, dV_ges=dV_ges, eps_0=eps_0, h_c_0=h_c_0, h_dis_0=h_dis_0, exponent=exponent)
+    print('Simulation inputs: exp={}, phi_0[um]={}, dV_ges[L/h]={}, eps_0={}'.format(exp, 1e6*phi_0, dV_ges, eps_0))
+    Sim = run_sim(exp=exp, phi_0=phi_0, dV_ges=dV_ges, eps_0=eps_0, h_c_0=h_c_0, h_dis_0=h_dis_0)
 
     # Animationen
 
